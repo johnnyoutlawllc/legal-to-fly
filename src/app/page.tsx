@@ -42,8 +42,14 @@ export default function Home() {
 
           <div className="mt-10 flex flex-col gap-3 sm:flex-row">
             <Link
-              href="/practice"
+              href="/drill"
               className="inline-flex h-12 items-center justify-center rounded-lg bg-[var(--accent)] px-6 font-medium text-black transition-opacity hover:opacity-90"
+            >
+              Do today&apos;s drill
+            </Link>
+            <Link
+              href="/practice"
+              className="inline-flex h-12 items-center justify-center rounded-lg border border-[var(--border)] px-6 font-medium transition-colors hover:bg-[var(--surface)]"
             >
               Start practicing free
             </Link>
@@ -54,6 +60,12 @@ export default function Home() {
               Take a timed mock exam
             </Link>
           </div>
+
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-[var(--muted)]">
+            The daily drill is ten questions in five minutes. It remembers what
+            you miss and brings it back right before you&apos;d forget it, so
+            showing up every day is the whole strategy.
+          </p>
         </section>
 
         <section
