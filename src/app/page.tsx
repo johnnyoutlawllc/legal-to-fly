@@ -47,12 +47,12 @@ export default function Home() {
             >
               Start practicing free
             </Link>
-            <a
-              href="#how"
+            <Link
+              href="/exam"
               className="inline-flex h-12 items-center justify-center rounded-lg border border-[var(--border)] px-6 font-medium transition-colors hover:bg-[var(--surface)]"
             >
-              How it works
-            </a>
+              Take a timed mock exam
+            </Link>
           </div>
         </section>
 
@@ -70,8 +70,8 @@ export default function Home() {
               p: "Fail the real test and the FAA hands you a report listing codes like UA.I.B.K21b. Every question here carries that same code, so your weak spots are already in the format the FAA speaks.",
             },
             {
-              h: "Three choices, like the real thing",
-              p: "The actual UAG exam gives you three options, not four. Practising against four-option questions trains the wrong instincts on test day.",
+              h: "Three choices, and a clock that doesn't stop",
+              p: "The actual UAG exam gives three options, not four, and the mock runs the real 60 questions in two hours. Practising against four-option questions with no timer trains the wrong instincts.",
             },
           ].map((c) => (
             <div

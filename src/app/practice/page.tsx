@@ -3,53 +3,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import { areaFromElement, shuffle, type Question } from "@/lib/types";
-
-const AREA_TITLES: Record<string, string> = {
-  I: "Regulations",
-  II: "Airspace & Operating Requirements",
-  III: "Weather",
-  IV: "Loading & Performance",
-  V: "Operations",
-};
-
-const SESSION_SIZE = 20;
-
-/** Midpoints of the FAA's published weightings for each area of operation.
- *  The bank is not proportional to these, so we sample to the weights rather
- *  than drawing uniformly. A uniform draw would over-test Regulations and
- *  under-test Operations, which is the opposite of the real exam. */
-const AREA_WEIGHTS: Record<string, number> = {
-  I: 0.20,
-  II: 0.20,
-  III: 0.135,
-  IV: 0.09,
-  V: 0.40,
-};
-
-function buildSession(all: Question[], size: number): Question[] {
-  const pools: Record<string, Question[]> = {};
-  for (const q of all) {
-    const area = areaFromElement(q.acs_element_code);
-    (pools[area] ??= []).push(q);
-  }
-
-  const picked: Question[] = [];
-  for (const [area, weight] of Object.entries(AREA_WEIGHTS)) {
-    const pool = shuffle(pools[area] ?? []);
-    picked.push(...pool.slice(0, Math.round(size * weight)));
-  }
-
-  // Rounding can leave us a question or two short of the target.
-  if (picked.length < size) {
-    const chosen = new Set(picked.map((q) => q.id));
-    picked.push(
-      ...shuffle(all.filter((q) => !chosen.has(q.id))).slice(0, size - picked.length)
-    );
-  }
-
-  return shuffle(picked).slice(0, size);
-}
+import { areaFromElement, type Question } from "@/lib/types";
+import {
+  AREA_TITLES,
+  PASS_PERCENT,
+  PRACTICE_SIZE,
+  SELECT_QUESTION_COLUMNS,
+  buildSession,
+  prepare,
+} from "@/lib/session";
 
 export default function PracticePage() {
   const [questions, setQuestions] = useState<Question[] | null>(null);
@@ -64,9 +26,7 @@ export default function PracticePage() {
     (async () => {
       const { data, error } = await supabase
         .from("questions")
-        .select(
-          "id, slug, stem, explanation, acs_element_code, difficulty, citation, choices(id,label,body,is_correct,rationale,sort_order)"
-        )
+        .select(SELECT_QUESTION_COLUMNS)
         .eq("is_active", true);
 
       if (cancelled) return;
@@ -74,12 +34,9 @@ export default function PracticePage() {
         setError(error.message);
         return;
       }
-      const all = ((data ?? []) as unknown as Question[]).map((q) => ({
-        ...q,
-        choices: [...q.choices].sort((a, b) => a.sort_order - b.sort_order),
-      }));
+      const all = prepare(data);
       setPool(all);
-      setQuestions(buildSession(all, SESSION_SIZE));
+      setQuestions(buildSession(all, PRACTICE_SIZE));
     })();
     return () => {
       cancelled = true;
@@ -114,10 +71,9 @@ export default function PracticePage() {
     setResults({});
     setPicked(null);
     setIndex(0);
-    setQuestions(buildSession(pool, SESSION_SIZE));
+    setQuestions(buildSession(pool, PRACTICE_SIZE));
   }, [pool]);
 
-  // Weak-area rollup, keyed by ACS area, shown on the results screen.
   const byArea = useMemo(() => {
     if (!questions) return [];
     const acc: Record<string, { right: number; total: number }> = {};
@@ -150,7 +106,7 @@ export default function PracticePage() {
 
   if (finished || !current) {
     const pct = total ? Math.round((correctCount / total) * 100) : 0;
-    const passed = pct >= 70;
+    const passed = pct >= PASS_PERCENT;
     return (
       <Shell>
         <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-8">
@@ -163,7 +119,7 @@ export default function PracticePage() {
             <span className={passed ? "text-[var(--correct)]" : "text-[var(--wrong)]"}>
               {passed
                 ? "That is a passing score on the real thing."
-                : "The real test needs 70%. Run it again."}
+                : `The real test needs ${PASS_PERCENT}%. Run it again.`}
             </span>
           </p>
 
@@ -183,7 +139,9 @@ export default function PracticePage() {
                   </span>
                   <span
                     className={
-                      areaPct >= 70 ? "text-[var(--correct)]" : "text-[var(--wrong)]"
+                      areaPct >= PASS_PERCENT
+                        ? "text-[var(--correct)]"
+                        : "text-[var(--wrong)]"
                     }
                   >
                     {s.right}/{s.total} · {areaPct}%
@@ -193,12 +151,20 @@ export default function PracticePage() {
             })}
           </ul>
 
-          <button
-            onClick={restart}
-            className="mt-8 h-11 rounded-lg bg-[var(--accent)] px-6 font-medium text-black transition-opacity hover:opacity-90"
-          >
-            Go again
-          </button>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <button
+              onClick={restart}
+              className="h-11 rounded-lg bg-[var(--accent)] px-6 font-medium text-black transition-opacity hover:opacity-90"
+            >
+              Go again
+            </button>
+            <Link
+              href="/exam"
+              className="inline-flex h-11 items-center rounded-lg border border-[var(--border)] px-6 font-medium transition-colors hover:bg-[var(--surface-2)]"
+            >
+              Try a timed mock exam
+            </Link>
+          </div>
         </div>
       </Shell>
     );
@@ -268,7 +234,9 @@ export default function PracticePage() {
 
             {!pickedChoice?.is_correct && pickedChoice?.rationale && (
               <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
-                <span className="text-[var(--text)]">Why {pickedChoice.label} is wrong: </span>
+                <span className="text-[var(--text)]">
+                  Why {pickedChoice.label} is wrong:{" "}
+                </span>
                 {pickedChoice.rationale}
               </p>
             )}
