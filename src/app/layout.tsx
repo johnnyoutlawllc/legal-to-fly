@@ -6,7 +6,7 @@ import "./globals.css";
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Legal to Fly — Pass the FAA Part 107 exam",
+  title: "Legal to Fly: Pass the FAA Part 107 exam",
   description:
     "Practice questions for the FAA Part 107 Remote Pilot knowledge test, written from the current regulations and mapped to the ACS codes printed on your test report.",
 };

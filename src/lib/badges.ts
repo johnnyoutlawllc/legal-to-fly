@@ -9,7 +9,7 @@ import { effectiveStreak, loadStreak, today } from "@/lib/srs";
 /** The badge case. Earned state lives in localStorage as id -> date earned.
  *  Everything a badge needs is derivable from mastery, the streak, and the
  *  local exam history, so `claimNewBadges` can run at any award point (end of
- *  a drill, practice session, or mock exam — and on the flight path itself,
+ *  a drill, practice session, or mock exam, and on the flight path itself,
  *  which catches anything earned but never claimed). */
 
 export type BadgeId =
@@ -29,7 +29,7 @@ export type BadgeId =
 export type BadgeDef = {
   id: BadgeId;
   name: string;
-  /** How you earn it — shown on locked badges as the quest. */
+  /** How you earn it, shown on locked badges as the quest. */
   hint: string;
 };
 

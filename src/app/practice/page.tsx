@@ -277,7 +277,7 @@ function Practice() {
             >
               {pickedChoice?.is_correct
                 ? "Correct."
-                : `Not quite — the answer is ${correctChoice?.label}.`}
+                : `Not quite. The answer is ${correctChoice?.label}.`}
             </p>
 
             {!pickedChoice?.is_correct && pickedChoice?.rationale && (

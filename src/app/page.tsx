@@ -37,7 +37,7 @@ export default function Home() {
           <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--muted)]">
             The Part 107 test is the only thing between your drone and getting
             paid to fly it. We turned studying for it into a game: five areas
-            to conquer, progress bars that only go up, badges for the shelf,
+            to clear, progress bars that only go up, badges for the shelf,
             and a daily ten-question drill that does the remembering for you.
           </p>
 
@@ -63,8 +63,8 @@ export default function Home() {
           </div>
 
           <p className="mt-4 max-w-2xl text-sm leading-6 text-[var(--muted)]">
-            Free, no account needed. Ten questions a day is the whole strategy —
-            the drill brings back what you miss right before you&apos;d forget it.
+            Free, no account needed. Ten questions a day is the whole strategy.
+            The drill brings back what you miss right before you&apos;d forget it.
           </p>
         </section>
 
@@ -77,7 +77,7 @@ export default function Home() {
           {[
             {
               h: "The real test, not a lookalike",
-              p: "Three answer choices, 60 questions, two hours on the mock — the exact shape of the real UAG exam. No four-option questions training the wrong instincts.",
+              p: "Three answer choices, 60 questions, two hours on the mock. That is the exact shape of the real UAG exam. No four-option questions training the wrong instincts.",
             },
             {
               h: "Every answer shows its receipts",

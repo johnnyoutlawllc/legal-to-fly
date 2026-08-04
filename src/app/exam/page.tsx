@@ -113,7 +113,7 @@ export default function ExamPage() {
   }, [questions, answers]);
 
   // Grade once per exam: feed mastery, log the score, see what it unlocked.
-  // Unanswered questions are recorded as misses — same as the scoring.
+  // Unanswered questions are recorded as misses, same as the scoring.
   useEffect(() => {
     if (phase !== "done" || questions.length === 0 || graded.current) return;
     graded.current = true;
@@ -158,7 +158,7 @@ export default function ExamPage() {
         <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-8">
           <h1 className="text-2xl font-semibold tracking-tight">Mock exam</h1>
           <p className="mt-3 leading-7 text-[var(--muted)]">
-            Sixty questions, two hours, seventy percent to pass — the same shape
+            Sixty questions, two hours, seventy percent to pass, the same shape
             as the real Unmanned Aircraft General exam. Questions are drawn to
             the FAA&apos;s published area weightings. No feedback until you
             finish, and the clock does not stop.

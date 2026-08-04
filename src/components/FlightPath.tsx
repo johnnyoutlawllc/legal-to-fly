@@ -10,17 +10,17 @@ import { effectiveStreak, loadStreak } from "@/lib/srs";
 import { BadgeShelf } from "@/components/Badges";
 
 /** The Trailhead move: the study plan is a visible trail. Five areas, a
- *  progress bar each, a badge at the end of every one. All local state — an
+ *  progress bar each, a badge at the end of every one. All local state, so an
  *  anonymous hobbyist gets the full game from question one. */
 
 type PoolRow = { slug: string; acs_element_code: string };
 
 const AREA_WEIGHT_LABEL: Record<string, string> = {
-  I: "15–25% of the exam",
-  II: "15–25% of the exam",
-  III: "11–16% of the exam",
-  IV: "7–11% of the exam",
-  V: "35–45% of the exam",
+  I: "15-25% of the exam",
+  II: "15-25% of the exam",
+  III: "11-16% of the exam",
+  IV: "7-11% of the exam",
+  V: "35-45% of the exam",
 };
 
 export function FlightPath() {

@@ -233,7 +233,7 @@ export default function DrillPage() {
             {right}/{drillSize}
           </p>
           <p className="mt-2 text-[var(--muted)]">
-            first try{missed.length > 0 ? ", and you cleared every miss before leaving" : " — a clean board"}
+            first try{missed.length > 0 ? ", and you cleared every miss before leaving" : ", a clean board"}
             .
           </p>
 
@@ -337,7 +337,7 @@ export default function DrillPage() {
             >
               {pickedChoice?.is_correct
                 ? PRAISE[praise]
-                : `Not quite — the answer is ${correctChoice?.label}. It'll be back before the end of the drill.`}
+                : `Not quite. The answer is ${correctChoice?.label}. It'll be back before the end of the drill.`}
             </p>
 
             {!pickedChoice?.is_correct && pickedChoice?.rationale && (

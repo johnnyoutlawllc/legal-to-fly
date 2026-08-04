@@ -3,7 +3,7 @@ import { areaFromElement } from "@/lib/types";
 /** Mastery is the fuel for the flight path and the badges: one record per
  *  question slug, fed by every surface (practice, drill, exam). A question
  *  counts as mastered once it has been answered correctly at least once.
- *  Separate from the SRS schedule on purpose — grading practice answers into
+ *  Separate from the SRS schedule on purpose: grading practice answers into
  *  SM-2 would pollute the drill's scheduling. Keyed by slug, which survives
  *  re-seeds where UUIDs would not. */
 

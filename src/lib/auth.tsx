@@ -13,7 +13,7 @@ import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 
 /*
- * Google is the only way in — no passwords, no forms. The row in
+ * Google is the only way in: no passwords, no forms. The row in
  * `ltf.profiles` is normally created by the `on_auth_user_created_ltf`
  * trigger; the upsert below is the fallback for accounts that predate it
  * (this Supabase project is shared across all Outlaw apps, so plenty do).

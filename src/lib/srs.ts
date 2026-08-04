@@ -4,7 +4,7 @@ import { buildSession } from "@/lib/session";
 /** The daily drill: a short session the app schedules for you. Reviews that
  *  are due come first, new material fills the rest, and misses come back
  *  right before you'd forget them (SM-2). State lives in localStorage until
- *  auth ships (LTF-01) — keyed by question slug, which survives re-seeds
+ *  auth ships (LTF-01), keyed by question slug, which survives re-seeds
  *  where UUIDs would not. */
 
 export const DRILL_SIZE = 10;
@@ -36,7 +36,7 @@ export type Streak = {
 const SRS_KEY = "ltf_srs_v1";
 const STREAK_KEY = "ltf_streak_v1";
 
-/** Local calendar date, not UTC — a 11pm drill should count for today. */
+/** Local calendar date, not UTC: an 11pm drill should count for today. */
 export function today(): string {
   return toDateString(new Date());
 }
@@ -98,7 +98,7 @@ export function dueCount(srs: SrsMap, on = today()): number {
 }
 
 /** Reviews that are due (oldest debt first), then new questions sampled to
- *  the FAA area weights, then — only if the bank runs dry — the reviews due
+ *  the FAA area weights, then (only if the bank runs dry) the reviews due
  *  soonest. */
 export function buildDrill(pool: Question[], srs: SrsMap, size = DRILL_SIZE): Question[] {
   const t = today();

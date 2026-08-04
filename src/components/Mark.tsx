@@ -2,7 +2,7 @@
  * The Legal to Fly mark: a drone under the 400 ft ceiling line.
  *
  * Inline rather than an <img> so it inherits nothing and needs no request.
- * Text free on purpose — the wordmark is real HTML next to it, which keeps
+ * Text free on purpose: the wordmark is real HTML next to it, which keeps
  * the type in Inter and selectable. The raster and tab versions live in
  * src/app/icon.svg, favicon.ico and apple-icon.png.
  */
