@@ -116,17 +116,15 @@ export default function DrillPage() {
     if (!current || !picked) return;
     const choice = current.choices.find((c) => c.id === picked);
     setPicked(null);
-    setQueue((q) => {
-      const rest = q.slice(1);
-      // A miss goes to the back of the queue until it's answered right.
-      const requeued = choice?.is_correct ? rest : [...rest, current];
-      if (requeued.length === 0) {
-        setStreak(recordCompletion());
-        setPhase("done");
-      }
-      return requeued;
-    });
-  }, [current, picked]);
+    // A miss goes to the back of the queue until it's answered right.
+    const rest = queue.slice(1);
+    const requeued = choice?.is_correct ? rest : [...rest, current];
+    setQueue(requeued);
+    if (requeued.length === 0) {
+      setStreak(recordCompletion());
+      setPhase("done");
+    }
+  }, [current, picked, queue]);
 
   if (error) {
     return (
@@ -245,7 +243,7 @@ export default function DrillPage() {
         <div className="flex items-center justify-between text-sm text-[var(--muted)]">
           <span>
             {clearedCount} of {drillSize} cleared
-            {isRetry && (
+            {isRetry && !answered && (
               <span className="ml-3 rounded border border-[var(--accent)] px-2 py-0.5 text-xs text-[var(--accent)]">
                 back for another pass
               </span>
