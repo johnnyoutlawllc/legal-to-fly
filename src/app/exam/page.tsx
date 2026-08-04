@@ -14,6 +14,10 @@ import {
   formatClock,
   prepare,
 } from "@/lib/session";
+import { recordAnswer, recordExam } from "@/lib/mastery";
+import { claimNewBadges, type BadgeDef } from "@/lib/badges";
+import { NewBadges } from "@/components/Badges";
+import { today } from "@/lib/srs";
 
 type Phase = "loading" | "ready" | "running" | "done" | "error";
 
@@ -26,7 +30,9 @@ export default function ExamPage() {
   const [index, setIndex] = useState(0);
   const [remaining, setRemaining] = useState(EXAM_SECONDS);
   const [flagged, setFlagged] = useState<Set<string>>(new Set());
+  const [newBadges, setNewBadges] = useState<BadgeDef[]>([]);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const graded = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -61,6 +67,8 @@ export default function ExamPage() {
     setFlagged(new Set());
     setIndex(0);
     setRemaining(EXAM_SECONDS);
+    setNewBadges([]);
+    graded.current = false;
     setPhase("running");
   }, [pool]);
 
@@ -103,6 +111,20 @@ export default function ExamPage() {
       : 0;
     return { correct, pct, passed: pct >= PASS_PERCENT, byArea };
   }, [questions, answers]);
+
+  // Grade once per exam: feed mastery, log the score, see what it unlocked.
+  // Unanswered questions are recorded as misses — same as the scoring.
+  useEffect(() => {
+    if (phase !== "done" || questions.length === 0 || graded.current) return;
+    graded.current = true;
+    for (const q of questions) {
+      const picked = answers[q.id];
+      const ok = !!picked && !!q.choices.find((c) => c.id === picked)?.is_correct;
+      recordAnswer(q.slug, ok);
+    }
+    recordExam(scored.pct, today());
+    setNewBadges(claimNewBadges(pool));
+  }, [phase, questions, answers, scored.pct, pool]);
 
   const missedCodes = useMemo(() => {
     const codes: Record<string, number> = {};
@@ -176,6 +198,8 @@ export default function ExamPage() {
             {scored.correct} of {questions.length} correct. The real exam needs{" "}
             {PASS_PERCENT}%.
           </p>
+
+          <NewBadges badges={newBadges} />
 
           <h2 className="mt-8 text-sm font-medium uppercase tracking-widest text-[var(--muted)]">
             By area of operation

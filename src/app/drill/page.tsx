@@ -29,6 +29,9 @@ import {
 } from "@/lib/sync";
 import { useAuth } from "@/lib/auth";
 import { AuthButton } from "@/components/AuthButton";
+import { recordAnswer } from "@/lib/mastery";
+import { claimNewBadges, type BadgeDef } from "@/lib/badges";
+import { NewBadges } from "@/components/Badges";
 
 const PRAISE = [
   "Cleared for takeoff.",
@@ -56,6 +59,7 @@ export default function DrillPage() {
   const [firstTry, setFirstTry] = useState<Record<string, boolean>>({});
   const [picked, setPicked] = useState<string | null>(null);
   const [praise, setPraise] = useState(0);
+  const [newBadges, setNewBadges] = useState<BadgeDef[]>([]);
 
   useEffect(() => {
     setSrs(loadSrs());
@@ -128,6 +132,7 @@ export default function DrillPage() {
 
       if (firstTry[current.slug] === undefined) {
         setFirstTry((r) => ({ ...r, [current.slug]: choice.is_correct }));
+        recordAnswer(current.slug, choice.is_correct);
         const item = review(srs[current.slug], choice.is_correct);
         const next = { ...srs, [current.slug]: item };
         saveSrs(next);
@@ -149,9 +154,10 @@ export default function DrillPage() {
     if (requeued.length === 0) {
       setStreak(recordCompletion());
       if (user) void recordDrillDayRemote(user.id);
+      if (pool) setNewBadges(claimNewBadges(pool));
       setPhase("done");
     }
-  }, [current, picked, queue, user]);
+  }, [current, picked, queue, user, pool]);
 
   if (error) {
     return (
@@ -230,6 +236,8 @@ export default function DrillPage() {
             first try{missed.length > 0 ? ", and you cleared every miss before leaving" : " — a clean board"}
             .
           </p>
+
+          <NewBadges badges={newBadges} />
 
           <div className="mt-8 grid grid-cols-3 gap-3 sm:max-w-md">
             <Stat

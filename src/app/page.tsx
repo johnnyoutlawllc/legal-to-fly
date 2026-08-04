@@ -1,14 +1,7 @@
 import Link from "next/link";
 import { AuthButton } from "@/components/AuthButton";
 import { Mark } from "@/components/Mark";
-
-const AREAS = [
-  { code: "I", title: "Regulations", weight: "15–25%" },
-  { code: "II", title: "Airspace & Operating Requirements", weight: "15–25%" },
-  { code: "III", title: "Weather", weight: "11–16%" },
-  { code: "IV", title: "Loading & Performance", weight: "7–11%" },
-  { code: "V", title: "Operations", weight: "35–45%" },
-];
+import { FlightPath } from "@/components/FlightPath";
 
 export default function Home() {
   return (
@@ -24,28 +17,28 @@ export default function Home() {
           <span className="flex items-center gap-3">
             <AuthButton />
             <Link
-              href="/practice"
+              href="/drill"
               className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-black transition-opacity hover:opacity-90"
             >
-              Start practicing
+              Today&apos;s drill
             </Link>
           </span>
         </div>
       </header>
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-6">
-        <section className="py-20 sm:py-28">
+        <section className="py-20 sm:py-24">
           <p className="mb-4 text-sm font-medium uppercase tracking-widest text-[var(--accent)]">
-            FAA Part 107 · Remote Pilot
+            FAA Part 107 · Remote Pilot Certificate
           </p>
           <h1 className="max-w-3xl text-4xl font-semibold leading-tight tracking-tight sm:text-6xl">
-            Stop worrying about the rules. Start charging for the footage.
+            You already know how to fly. Now make it official.
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--muted)]">
-            The Part 107 knowledge test is 60 questions, two hours, and 70% to
-            pass. It is not hard. It is just unfamiliar. We drill you on the
-            parts that actually get asked, and we tell you exactly which rule
-            you got wrong and why.
+            The Part 107 test is the only thing between your drone and getting
+            paid to fly it. We turned studying for it into a game: five areas
+            to conquer, progress bars that only go up, badges for the shelf,
+            and a daily ten-question drill that does the remembering for you.
           </p>
 
           <div className="mt-10 flex flex-col gap-3 sm:flex-row">
@@ -53,28 +46,29 @@ export default function Home() {
               href="/drill"
               className="inline-flex h-12 items-center justify-center rounded-lg bg-[var(--accent)] px-6 font-medium text-black transition-opacity hover:opacity-90"
             >
-              Do today&apos;s drill
+              Start today&apos;s drill
             </Link>
             <Link
-              href="/practice"
+              href="#path"
               className="inline-flex h-12 items-center justify-center rounded-lg border border-[var(--border)] px-6 font-medium transition-colors hover:bg-[var(--surface)]"
             >
-              Start practicing free
+              See your flight path
             </Link>
             <Link
               href="/exam"
               className="inline-flex h-12 items-center justify-center rounded-lg border border-[var(--border)] px-6 font-medium transition-colors hover:bg-[var(--surface)]"
             >
-              Take a timed mock exam
+              Take a mock exam
             </Link>
           </div>
 
           <p className="mt-4 max-w-2xl text-sm leading-6 text-[var(--muted)]">
-            The daily drill is ten questions in five minutes. It remembers what
-            you miss and brings it back right before you&apos;d forget it, so
-            showing up every day is the whole strategy.
+            Free, no account needed. Ten questions a day is the whole strategy —
+            the drill brings back what you miss right before you&apos;d forget it.
           </p>
         </section>
+
+        <FlightPath />
 
         <section
           id="how"
@@ -82,16 +76,16 @@ export default function Home() {
         >
           {[
             {
-              h: "Written from the regulation, not a forum post",
-              p: "Every answer cites the section it comes from — 14 CFR 107.51(b), not 'I think it's 400 feet.' When the FAA amends a rule, the citation is how we find what to fix.",
+              h: "The real test, not a lookalike",
+              p: "Three answer choices, 60 questions, two hours on the mock — the exact shape of the real UAG exam. No four-option questions training the wrong instincts.",
             },
             {
-              h: "Mapped to the FAA's own ACS codes",
-              p: "Fail the real test and the FAA hands you a report listing codes like UA.I.B.K21b. Every question here carries that same code, so your weak spots are already in the format the FAA speaks.",
+              h: "Every answer shows its receipts",
+              p: "Miss one and you get the why, the rule it comes from (14 CFR 107.51(b), not 'some forum said 400 feet'), and the FAA's own ACS code for the topic.",
             },
             {
-              h: "Three choices, and a clock that doesn't stop",
-              p: "The actual UAG exam gives three options, not four, and the mock runs the real 60 questions in two hours. Practising against four-option questions with no timer trains the wrong instincts.",
+              h: "Weak spots in the FAA's language",
+              p: "Fail the real test and the FAA hands you a report of ACS codes. Our mock exam hands you the same list first, so nothing on test day is a surprise.",
             },
           ].map((c) => (
             <div
@@ -102,31 +96,6 @@ export default function Home() {
               <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{c.p}</p>
             </div>
           ))}
-        </section>
-
-        <section className="border-t border-[var(--border)] py-16">
-          <h2 className="text-2xl font-semibold tracking-tight">
-            What the test covers
-          </h2>
-          <p className="mt-2 text-[var(--muted)]">
-            Five areas of operation, weighted exactly as the FAA weights them.
-          </p>
-          <ul className="mt-8 divide-y divide-[var(--border)] overflow-hidden rounded-xl border border-[var(--border)]">
-            {AREAS.map((a) => (
-              <li
-                key={a.code}
-                className="flex items-center justify-between bg-[var(--surface)] px-5 py-4"
-              >
-                <span className="flex items-center gap-4">
-                  <span className="w-8 font-mono text-sm text-[var(--accent)]">
-                    {a.code}
-                  </span>
-                  <span className="font-medium">{a.title}</span>
-                </span>
-                <span className="text-sm text-[var(--muted)]">{a.weight}</span>
-              </li>
-            ))}
-          </ul>
         </section>
       </main>
 

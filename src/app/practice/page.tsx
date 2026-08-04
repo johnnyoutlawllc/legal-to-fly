@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { areaFromElement, type Question } from "@/lib/types";
+import { areaFromElement, shuffle, type Question } from "@/lib/types";
 import {
   AREA_TITLES,
   PASS_PERCENT,
@@ -12,14 +13,48 @@ import {
   buildSession,
   prepare,
 } from "@/lib/session";
+import { recordAnswer } from "@/lib/mastery";
+import { claimNewBadges, type BadgeDef } from "@/lib/badges";
+import { NewBadges } from "@/components/Badges";
 
 export default function PracticePage() {
+  return (
+    <Suspense
+      fallback={
+        <Shell>
+          <p className="text-[var(--muted)]">Loading questions…</p>
+        </Shell>
+      }
+    >
+      <Practice />
+    </Suspense>
+  );
+}
+
+function Practice() {
+  // ?area=II studies one area of operation; no param is the normal
+  // exam-weighted mix. Anything unrecognized falls back to the mix.
+  const rawArea = useSearchParams().get("area");
+  const area = rawArea && AREA_TITLES[rawArea] ? rawArea : null;
+
   const [questions, setQuestions] = useState<Question[] | null>(null);
   const [pool, setPool] = useState<Question[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [index, setIndex] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
   const [results, setResults] = useState<Record<string, boolean>>({});
+  const [newBadges, setNewBadges] = useState<BadgeDef[]>([]);
+
+  const draw = useCallback(
+    (from: Question[]) =>
+      area
+        ? shuffle(from.filter((q) => areaFromElement(q.acs_element_code) === area)).slice(
+            0,
+            PRACTICE_SIZE
+          )
+        : buildSession(from, PRACTICE_SIZE),
+    [area]
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -36,12 +71,12 @@ export default function PracticePage() {
       }
       const all = prepare(data);
       setPool(all);
-      setQuestions(buildSession(all, PRACTICE_SIZE));
+      setQuestions(draw(all));
     })();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [draw]);
 
   const current = questions?.[index];
   const answered = picked !== null;
@@ -57,6 +92,7 @@ export default function PracticePage() {
       if (!choice) return;
       setPicked(choiceId);
       setResults((r) => ({ ...r, [current.id]: choice.is_correct }));
+      recordAnswer(current.slug, choice.is_correct);
     },
     [picked, current]
   );
@@ -66,13 +102,19 @@ export default function PracticePage() {
     setIndex((i) => i + 1);
   }, []);
 
+  // Session over: see whether that unlocked anything.
+  useEffect(() => {
+    if (finished && pool.length > 0) setNewBadges(claimNewBadges(pool));
+  }, [finished, pool]);
+
   // Draw a fresh set from the whole bank rather than reshuffling the same 20.
   const restart = useCallback(() => {
     setResults({});
     setPicked(null);
     setIndex(0);
-    setQuestions(buildSession(pool, PRACTICE_SIZE));
-  }, [pool]);
+    setNewBadges([]);
+    setQuestions(draw(pool));
+  }, [pool, draw]);
 
   const byArea = useMemo(() => {
     if (!questions) return [];
@@ -80,17 +122,17 @@ export default function PracticePage() {
     for (const q of questions) {
       const decided = results[q.id];
       if (decided === undefined) continue;
-      const area = areaFromElement(q.acs_element_code);
-      acc[area] ??= { right: 0, total: 0 };
-      acc[area].total += 1;
-      if (decided) acc[area].right += 1;
+      const a = areaFromElement(q.acs_element_code);
+      acc[a] ??= { right: 0, total: 0 };
+      acc[a].total += 1;
+      if (decided) acc[a].right += 1;
     }
     return Object.entries(acc).sort((a, b) => a[0].length - b[0].length);
   }, [questions, results]);
 
   if (error) {
     return (
-      <Shell>
+      <Shell area={area}>
         <p className="text-[var(--wrong)]">Could not load questions: {error}</p>
       </Shell>
     );
@@ -98,7 +140,7 @@ export default function PracticePage() {
 
   if (!questions) {
     return (
-      <Shell>
+      <Shell area={area}>
         <p className="text-[var(--muted)]">Loading questions…</p>
       </Shell>
     );
@@ -108,10 +150,10 @@ export default function PracticePage() {
     const pct = total ? Math.round((correctCount / total) * 100) : 0;
     const passed = pct >= PASS_PERCENT;
     return (
-      <Shell>
+      <Shell area={area}>
         <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-8">
           <p className="text-sm uppercase tracking-widest text-[var(--muted)]">
-            Session complete
+            {area ? `${AREA_TITLES[area]} session complete` : "Session complete"}
           </p>
           <p className="mt-3 text-5xl font-semibold tracking-tight">{pct}%</p>
           <p className="mt-2 text-[var(--muted)]">
@@ -123,33 +165,39 @@ export default function PracticePage() {
             </span>
           </p>
 
-          <h2 className="mt-8 text-sm font-medium uppercase tracking-widest text-[var(--muted)]">
-            By area of operation
-          </h2>
-          <ul className="mt-3 divide-y divide-[var(--border)]">
-            {byArea.map(([area, s]) => {
-              const areaPct = Math.round((s.right / s.total) * 100);
-              return (
-                <li key={area} className="flex items-center justify-between py-3">
-                  <span>
-                    <span className="mr-3 font-mono text-sm text-[var(--accent)]">
-                      {area}
-                    </span>
-                    {AREA_TITLES[area] ?? "Unknown"}
-                  </span>
-                  <span
-                    className={
-                      areaPct >= PASS_PERCENT
-                        ? "text-[var(--correct)]"
-                        : "text-[var(--wrong)]"
-                    }
-                  >
-                    {s.right}/{s.total} · {areaPct}%
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
+          <NewBadges badges={newBadges} />
+
+          {!area && (
+            <>
+              <h2 className="mt-8 text-sm font-medium uppercase tracking-widest text-[var(--muted)]">
+                By area of operation
+              </h2>
+              <ul className="mt-3 divide-y divide-[var(--border)]">
+                {byArea.map(([a, s]) => {
+                  const areaPct = Math.round((s.right / s.total) * 100);
+                  return (
+                    <li key={a} className="flex items-center justify-between py-3">
+                      <span>
+                        <span className="mr-3 font-mono text-sm text-[var(--accent)]">
+                          {a}
+                        </span>
+                        {AREA_TITLES[a] ?? "Unknown"}
+                      </span>
+                      <span
+                        className={
+                          areaPct >= PASS_PERCENT
+                            ? "text-[var(--correct)]"
+                            : "text-[var(--wrong)]"
+                        }
+                      >
+                        {s.right}/{s.total} · {areaPct}%
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          )}
 
           <div className="mt-8 flex flex-wrap gap-3">
             <button
@@ -159,10 +207,10 @@ export default function PracticePage() {
               Go again
             </button>
             <Link
-              href="/exam"
+              href="/#path"
               className="inline-flex h-11 items-center rounded-lg border border-[var(--border)] px-6 font-medium transition-colors hover:bg-[var(--surface-2)]"
             >
-              Try a timed mock exam
+              Back to your flight path
             </Link>
           </div>
         </div>
@@ -174,7 +222,7 @@ export default function PracticePage() {
   const pickedChoice = current.choices.find((c) => c.id === picked);
 
   return (
-    <Shell>
+    <Shell area={area}>
       <div className="mb-6">
         <div className="flex items-center justify-between text-sm text-[var(--muted)]">
           <span>
@@ -267,14 +315,27 @@ export default function PracticePage() {
   );
 }
 
-function Shell({ children }: { children: React.ReactNode }) {
+function Shell({
+  children,
+  area = null,
+}: {
+  children: React.ReactNode;
+  area?: string | null;
+}) {
   return (
     <div className="flex flex-1 flex-col">
       <header className="border-b border-[var(--border)]">
         <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-6 py-5">
-          <Link href="/" className="text-lg font-semibold tracking-tight">
-            Legal<span className="text-[var(--accent)]">to</span>Fly
-          </Link>
+          <span className="flex items-center gap-3">
+            <Link href="/" className="text-lg font-semibold tracking-tight">
+              Legal<span className="text-[var(--accent)]">to</span>Fly
+            </Link>
+            {area && (
+              <span className="rounded border border-[var(--accent)]/50 px-2 py-0.5 text-xs text-[var(--accent)]">
+                {AREA_TITLES[area]}
+              </span>
+            )}
+          </span>
           <Link href="/" className="text-sm text-[var(--muted)] hover:text-[var(--text)]">
             Exit
           </Link>
