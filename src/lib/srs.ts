@@ -133,6 +133,10 @@ export function effectiveStreak(s: Streak, on = today()): number {
   return 0;
 }
 
+export function saveStreak(s: Streak): void {
+  localStorage.setItem(STREAK_KEY, JSON.stringify(s));
+}
+
 /** Idempotent per day: the second drill of the day is extra credit. */
 export function recordCompletion(on = today()): Streak {
   const s = loadStreak();
@@ -144,6 +148,6 @@ export function recordCompletion(on = today()): Streak {
     best: Math.max(current, s.best),
     total: s.total + 1,
   };
-  localStorage.setItem(STREAK_KEY, JSON.stringify(next));
+  saveStreak(next);
   return next;
 }

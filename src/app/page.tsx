@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AuthButton } from "@/components/AuthButton";
 
 const AREAS = [
   { code: "I", title: "Regulations", weight: "15–25%" },
@@ -16,12 +17,15 @@ export default function Home() {
           <span className="text-lg font-semibold tracking-tight">
             Legal<span className="text-[var(--accent)]">to</span>Fly
           </span>
-          <Link
-            href="/practice"
-            className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-black transition-opacity hover:opacity-90"
-          >
-            Start practicing
-          </Link>
+          <span className="flex items-center gap-3">
+            <AuthButton />
+            <Link
+              href="/practice"
+              className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-black transition-opacity hover:opacity-90"
+            >
+              Start practicing
+            </Link>
+          </span>
         </div>
       </header>
 

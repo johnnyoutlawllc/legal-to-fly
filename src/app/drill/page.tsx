@@ -20,6 +20,15 @@ import {
   saveSrs,
   today,
 } from "@/lib/srs";
+import {
+  pullAndMergeSrs,
+  pullStreak,
+  pushAllSrs,
+  pushSrsItem,
+  recordDrillDayRemote,
+} from "@/lib/sync";
+import { useAuth } from "@/lib/auth";
+import { AuthButton } from "@/components/AuthButton";
 
 const PRAISE = [
   "Cleared for takeoff.",
@@ -32,6 +41,7 @@ const PRAISE = [
 type Phase = "intro" | "run" | "done";
 
 export default function DrillPage() {
+  const { user } = useAuth();
   const [pool, setPool] = useState<Question[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [srs, setSrs] = useState<SrsMap>({});
@@ -68,6 +78,25 @@ export default function DrillPage() {
     };
   }, []);
 
+  // Signed in: merge the server's schedule with this browser's, then push the
+  // result back so a new device starts from the same place.
+  useEffect(() => {
+    if (!user || !pool) return;
+    let cancelled = false;
+    (async () => {
+      const merged = await pullAndMergeSrs(loadSrs(), pool);
+      if (cancelled) return;
+      saveSrs(merged);
+      setSrs(merged);
+      void pushAllSrs(merged, pool, user.id);
+      const s = await pullStreak();
+      if (!cancelled && s) setStreak(s);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, pool]);
+
   const due = useMemo(() => dueCount(srs), [srs]);
   const newCount = useMemo(
     () => (pool ? pool.filter((q) => !srs[q.slug]).length : 0),
@@ -99,17 +128,14 @@ export default function DrillPage() {
 
       if (firstTry[current.slug] === undefined) {
         setFirstTry((r) => ({ ...r, [current.slug]: choice.is_correct }));
-        setSrs((prev) => {
-          const next = {
-            ...prev,
-            [current.slug]: review(prev[current.slug], choice.is_correct),
-          };
-          saveSrs(next);
-          return next;
-        });
+        const item = review(srs[current.slug], choice.is_correct);
+        const next = { ...srs, [current.slug]: item };
+        saveSrs(next);
+        setSrs(next);
+        if (user) void pushSrsItem(user.id, current.id, item);
       }
     },
-    [picked, current, firstTry]
+    [picked, current, firstTry, srs, user]
   );
 
   const next = useCallback(() => {
@@ -122,9 +148,10 @@ export default function DrillPage() {
     setQueue(requeued);
     if (requeued.length === 0) {
       setStreak(recordCompletion());
+      if (user) void recordDrillDayRemote(user.id);
       setPhase("done");
     }
-  }, [current, picked, queue]);
+  }, [current, picked, queue, user]);
 
   if (error) {
     return (
@@ -160,6 +187,12 @@ export default function DrillPage() {
             you miss back right before you would forget them. Show up daily and
             the schedule does the studying for you.
           </p>
+          {!user && (
+            <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--muted)]">
+              Sign in with Google (top right) and your schedule and streak
+              follow you to any device.
+            </p>
+          )}
 
           <div className="mt-8 grid grid-cols-3 gap-3 sm:max-w-md">
             <Stat label="Day streak" value={String(running)} accent={running > 0} />
@@ -363,9 +396,12 @@ function Shell({ children }: { children: React.ReactNode }) {
           <Link href="/" className="text-lg font-semibold tracking-tight">
             Legal<span className="text-[var(--accent)]">to</span>Fly
           </Link>
-          <Link href="/" className="text-sm text-[var(--muted)] hover:text-[var(--text)]">
-            Exit
-          </Link>
+          <span className="flex items-center gap-4">
+            <AuthButton />
+            <Link href="/" className="text-sm text-[var(--muted)] hover:text-[var(--text)]">
+              Exit
+            </Link>
+          </span>
         </div>
       </header>
       <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">{children}</main>
