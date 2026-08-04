@@ -13,8 +13,47 @@ const AREA_TITLES: Record<string, string> = {
   V: "Operations",
 };
 
+const SESSION_SIZE = 20;
+
+/** Midpoints of the FAA's published weightings for each area of operation.
+ *  The bank is not proportional to these, so we sample to the weights rather
+ *  than drawing uniformly. A uniform draw would over-test Regulations and
+ *  under-test Operations, which is the opposite of the real exam. */
+const AREA_WEIGHTS: Record<string, number> = {
+  I: 0.20,
+  II: 0.20,
+  III: 0.135,
+  IV: 0.09,
+  V: 0.40,
+};
+
+function buildSession(all: Question[], size: number): Question[] {
+  const pools: Record<string, Question[]> = {};
+  for (const q of all) {
+    const area = areaFromElement(q.acs_element_code);
+    (pools[area] ??= []).push(q);
+  }
+
+  const picked: Question[] = [];
+  for (const [area, weight] of Object.entries(AREA_WEIGHTS)) {
+    const pool = shuffle(pools[area] ?? []);
+    picked.push(...pool.slice(0, Math.round(size * weight)));
+  }
+
+  // Rounding can leave us a question or two short of the target.
+  if (picked.length < size) {
+    const chosen = new Set(picked.map((q) => q.id));
+    picked.push(
+      ...shuffle(all.filter((q) => !chosen.has(q.id))).slice(0, size - picked.length)
+    );
+  }
+
+  return shuffle(picked).slice(0, size);
+}
+
 export default function PracticePage() {
   const [questions, setQuestions] = useState<Question[] | null>(null);
+  const [pool, setPool] = useState<Question[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [index, setIndex] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
@@ -35,11 +74,12 @@ export default function PracticePage() {
         setError(error.message);
         return;
       }
-      const prepared = shuffle((data ?? []) as unknown as Question[]).map((q) => ({
+      const all = ((data ?? []) as unknown as Question[]).map((q) => ({
         ...q,
         choices: [...q.choices].sort((a, b) => a.sort_order - b.sort_order),
       }));
-      setQuestions(prepared);
+      setPool(all);
+      setQuestions(buildSession(all, SESSION_SIZE));
     })();
     return () => {
       cancelled = true;
@@ -69,12 +109,13 @@ export default function PracticePage() {
     setIndex((i) => i + 1);
   }, []);
 
+  // Draw a fresh set from the whole bank rather than reshuffling the same 20.
   const restart = useCallback(() => {
     setResults({});
     setPicked(null);
     setIndex(0);
-    setQuestions((qs) => (qs ? shuffle(qs) : qs));
-  }, []);
+    setQuestions(buildSession(pool, SESSION_SIZE));
+  }, [pool]);
 
   // Weak-area rollup, keyed by ACS area, shown on the results screen.
   const byArea = useMemo(() => {
