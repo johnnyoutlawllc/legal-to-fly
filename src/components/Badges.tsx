@@ -8,6 +8,20 @@ const HEX = "50 3 91 26.5 91 73.5 50 97 9 73.5 9 26.5";
 function Glyph({ id }: { id: BadgeId }) {
   const stroke = { stroke: "currentColor", strokeWidth: 6, strokeLinecap: "round" as const, fill: "none" };
   switch (id) {
+    case "basics": // the number itself
+      return (
+        <text
+          x="50"
+          y="60"
+          textAnchor="middle"
+          fontSize="26"
+          fontWeight="700"
+          fill="currentColor"
+          fontFamily="inherit"
+        >
+          107
+        </text>
+      );
     case "preflight": // clipboard check
       return (
         <g {...stroke}>

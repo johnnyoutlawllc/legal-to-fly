@@ -5,7 +5,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { AREA_TITLES } from "@/lib/session";
 import { type MasteryMap, areaProgress, loadMastery } from "@/lib/mastery";
-import { type EarnedMap, claimNewBadges, loadEarned } from "@/lib/badges";
+import { type EarnedMap, basicsRead, claimNewBadges, loadEarned } from "@/lib/badges";
 import { effectiveStreak, loadStreak } from "@/lib/srs";
 import { BadgeShelf } from "@/components/Badges";
 
@@ -28,11 +28,13 @@ export function FlightPath() {
   const [mastery, setMastery] = useState<MasteryMap>({});
   const [earned, setEarned] = useState<EarnedMap>({});
   const [streak, setStreak] = useState(0);
+  const [read, setRead] = useState(false);
 
   useEffect(() => {
     setMastery(loadMastery());
     setEarned(loadEarned());
     setStreak(effectiveStreak(loadStreak()));
+    setRead(basicsRead());
     let cancelled = false;
     (async () => {
       const { data } = await supabase
@@ -94,12 +96,47 @@ export function FlightPath() {
       </p>
 
       <div className="mt-8 space-y-4">
+        <Link
+          href="/basics"
+          className="group block rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)]"
+        >
+          <div className="flex items-center justify-between gap-4">
+            <span className="flex items-center gap-4">
+              <span
+                className={`flex h-9 w-9 items-center justify-center rounded-lg font-mono text-xs ${
+                  read
+                    ? "bg-[var(--accent)] text-black"
+                    : "bg-[var(--surface-2)] text-[var(--accent)]"
+                }`}
+              >
+                107
+              </span>
+              <span>
+                <span className="block font-medium">Start here: 107 Basics</span>
+                <span className="block text-xs text-[var(--muted)]">
+                  What the certificate is, why you need it, and how the test works
+                </span>
+              </span>
+            </span>
+            <span className="shrink-0 text-sm text-[var(--muted)]">
+              {read ? (
+                <span className="text-[var(--accent)]">Read ✓</span>
+              ) : (
+                "5 minute read"
+              )}
+              <span className="ml-3 hidden text-[var(--accent)] group-hover:inline">
+                Read →
+              </span>
+            </span>
+          </div>
+        </Link>
+
         {progress.map((p) => {
           const done = p.total > 0 && p.mastered === p.total;
           return (
             <Link
               key={p.area}
-              href={`/practice?area=${p.area}`}
+              href={`/study/${p.area}`}
               className="group block rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--accent)]"
             >
               <div className="flex items-center justify-between gap-4">

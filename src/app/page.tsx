@@ -3,6 +3,109 @@ import { AuthButton } from "@/components/AuthButton";
 import { Mark } from "@/components/Mark";
 import { FlightPath } from "@/components/FlightPath";
 
+function Ext({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-[var(--accent)] underline decoration-[var(--accent)]/40 underline-offset-2 hover:decoration-[var(--accent)]"
+    >
+      {children}
+    </a>
+  );
+}
+
+const FAQ: { q: string; a: React.ReactNode }[] = [
+  {
+    q: "Where do I actually take the test?",
+    a: (
+      <>
+        In person at a PSI testing center. Book a seat for the Unmanned
+        Aircraft General (UAG) exam at{" "}
+        <Ext href="https://faa.psiexams.com">faa.psiexams.com</Ext>. It costs
+        $175, and you bring a government photo ID. Many centers have seats
+        within a week or two.
+      </>
+    ),
+  },
+  {
+    q: "What do I need before I can book?",
+    a: (
+      <>
+        An FAA Tracking Number (FTN). Create a free account at{" "}
+        <Ext href="https://iacra.faa.gov">iacra.faa.gov</Ext> and it assigns
+        you one in a few minutes. PSI asks for it when you register.
+      </>
+    ),
+  },
+  {
+    q: "What score do I need?",
+    a: (
+      <>
+        70%, which is 42 of 60 questions. Unanswered questions count as wrong,
+        so answer everything. Our mock exam scores exactly the same way.
+      </>
+    ),
+  },
+  {
+    q: "What happens after I pass?",
+    a: (
+      <>
+        Apply for the certificate on{" "}
+        <Ext href="https://iacra.faa.gov">IACRA</Ext> using FAA Form 8710-13.
+        TSA runs a background check, a temporary certificate arrives by email
+        usually within a couple of weeks, and the permanent card comes in the
+        mail. You can fly paid work on the temporary one.
+      </>
+    ),
+  },
+  {
+    q: "What if I fail?",
+    a: (
+      <>
+        You wait 14 calendar days and pay the fee again. The FAA hands you a
+        report listing the ACS codes you missed, and every question on this
+        site carries those same codes, so you can study exactly what got you.
+      </>
+    ),
+  },
+  {
+    q: "I only fly for fun. Do I still need this?",
+    a: (
+      <>
+        No. Purely recreational flying needs the free online{" "}
+        <Ext href="https://www.faa.gov/uas/recreational_flyers">TRUST test</Ext>{" "}
+        instead. But the moment a flight benefits a business, yours or anyone
+        else&apos;s, even unpaid, you are under Part 107 and need the
+        certificate.
+      </>
+    ),
+  },
+  {
+    q: "Do I have to register my drone?",
+    a: (
+      <>
+        Yes. Under Part 107 every aircraft is registered, regardless of
+        weight. It is $5 for three years at{" "}
+        <Ext href="https://faadronezone-access.faa.gov">FAA DroneZone</Ext>,
+        and the registration number goes on the outside of the aircraft.
+      </>
+    ),
+  },
+  {
+    q: "Does the certificate expire?",
+    a: (
+      <>
+        The card itself never expires, but you must complete free online
+        recurrent training every 24 calendar months at{" "}
+        <Ext href="https://www.faasafety.gov">faasafety.gov</Ext> to keep
+        flying under it.
+      </>
+    ),
+  },
+];
+
 export default function Home() {
   return (
     <div className="flex flex-1 flex-col">
@@ -96,6 +199,34 @@ export default function Home() {
               <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{c.p}</p>
             </div>
           ))}
+        </section>
+
+        <section id="faq" className="border-t border-[var(--border)] py-16">
+          <h2 className="text-2xl font-semibold tracking-tight">
+            Taking the real thing
+          </h2>
+          <p className="mt-2 text-[var(--muted)]">
+            Straight answers about the actual test, with the links you need to
+            book it.
+          </p>
+          <div className="mt-8 space-y-3">
+            {FAQ.map((f) => (
+              <details
+                key={f.q}
+                className="group rounded-xl border border-[var(--border)] bg-[var(--surface)] px-5 py-4"
+              >
+                <summary className="cursor-pointer list-none font-medium marker:content-none">
+                  <span className="mr-3 inline-block text-[var(--accent)] transition-transform group-open:rotate-90">
+                    ›
+                  </span>
+                  {f.q}
+                </summary>
+                <div className="mt-3 pl-6 text-sm leading-6 text-[var(--muted)]">
+                  {f.a}
+                </div>
+              </details>
+            ))}
+          </div>
         </section>
       </main>
 

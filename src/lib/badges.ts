@@ -13,6 +13,7 @@ import { effectiveStreak, loadStreak, today } from "@/lib/srs";
  *  which catches anything earned but never claimed). */
 
 export type BadgeId =
+  | "basics"
   | "preflight"
   | "streak3"
   | "streak7"
@@ -34,6 +35,7 @@ export type BadgeDef = {
 };
 
 export const BADGES: BadgeDef[] = [
+  { id: "basics", name: "107 Basics", hint: "Read what the certificate is and how to get it" },
   { id: "preflight", name: "Preflight Check", hint: "Answer your first question" },
   { id: "streak3", name: "Pattern Work", hint: "Keep a 3-day drill streak" },
   { id: "streak7", name: "Cross-Country", hint: "Keep a 7-day drill streak" },
@@ -52,6 +54,16 @@ export const BADGES: BadgeDef[] = [
 export type EarnedMap = Partial<Record<BadgeId, string>>;
 
 const BADGES_KEY = "ltf_badges_v1";
+const BASICS_KEY = "ltf_basics_v1";
+
+export function basicsRead(): boolean {
+  if (typeof window === "undefined") return false;
+  return localStorage.getItem(BASICS_KEY) !== null;
+}
+
+export function markBasicsRead(): void {
+  if (!basicsRead()) localStorage.setItem(BASICS_KEY, today());
+}
 
 export function loadEarned(): EarnedMap {
   if (typeof window === "undefined") return {};
@@ -68,6 +80,7 @@ function evaluate(
 ): Set<BadgeId> {
   const earned = new Set<BadgeId>();
 
+  if (basicsRead()) earned.add("basics");
   if (Object.keys(mastery).length > 0) earned.add("preflight");
 
   const streak = loadStreak();
