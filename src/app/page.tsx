@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AuthButton } from "@/components/AuthButton";
+import { Mark } from "@/components/Mark";
 
 const AREAS = [
   { code: "I", title: "Regulations", weight: "15–25%" },
@@ -14,8 +15,11 @@ export default function Home() {
     <div className="flex flex-1 flex-col">
       <header className="border-b border-[var(--border)]">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-5">
-          <span className="text-lg font-semibold tracking-tight">
-            Legal<span className="text-[var(--accent)]">to</span>Fly
+          <span className="flex items-center gap-2.5">
+            <Mark className="h-9 w-9" />
+            <span className="text-lg font-semibold tracking-tight">
+              Legal<span className="text-[var(--accent)]">to</span>Fly
+            </span>
           </span>
           <span className="flex items-center gap-3">
             <AuthButton />
