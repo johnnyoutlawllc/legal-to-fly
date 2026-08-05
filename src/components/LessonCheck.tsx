@@ -1,12 +1,24 @@
 "use client";
 
 import { useState } from "react";
+import { useLearningStyle } from "@/lib/style";
 
 /** Inline tap-to-answer knowledge check used inside lesson bodies via the
  *  `::check ... ::` block. Deliberately not graded or recorded anywhere —
  *  it exists to keep reading active, not to feed mastery or the SRS. */
 
 const LETTERS = ["A", "B", "C", "D"];
+
+const RIGHT = {
+  serious: ["Nailed it."],
+  playful: ["Nailed it. 🎯", "Full send! 🚀", "Cleared for takeoff. 🛫", "Certified airspace nerd. 🤓"],
+};
+const WRONG = {
+  serious: ["Not quite."],
+  playful: ["Womp womp. 📉", "The FAA would like a word. 📋", "Hard landing — read on. 💥", "Denied. LAANC says no. 🚫"],
+};
+
+const pick = (a: string[]) => a[Math.floor(Math.random() * a.length)];
 
 export default function LessonCheck({
   q,
@@ -19,9 +31,16 @@ export default function LessonCheck({
   correct: number;
   why: string;
 }) {
+  const { style } = useLearningStyle();
   const [picked, setPicked] = useState<number | null>(null);
+  const [verdict, setVerdict] = useState("");
   const answered = picked !== null;
   const right = picked === correct;
+
+  const answer = (j: number) => {
+    setPicked(j);
+    setVerdict(pick(j === correct ? RIGHT[style] : WRONG[style]) + " ");
+  };
 
   return (
     <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
@@ -41,7 +60,7 @@ export default function LessonCheck({
             <button
               key={j}
               disabled={answered}
-              onClick={() => setPicked(j)}
+              onClick={() => answer(j)}
               className={`flex w-full items-start gap-3 rounded-lg border px-4 py-2.5 text-left text-sm leading-6 transition-colors ${cls} ${
                 answered ? "" : "cursor-pointer"
               }`}
@@ -61,7 +80,7 @@ export default function LessonCheck({
               right ? "text-[var(--correct)]" : "text-[var(--wrong)]"
             }`}
           >
-            {right ? "Nailed it. " : "Not quite. "}
+            {verdict}
           </span>
           {why}
         </p>

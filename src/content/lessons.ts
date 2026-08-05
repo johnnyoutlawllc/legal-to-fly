@@ -95,6 +95,8 @@ Why: The vignette means Class E starts at 700 ft AGL there. Below that floor you
 - When FAA materials say "ATC authorization," for a drone that means **FAA
   authorization via LAANC/DroneZone** - you do not call the tower.
 
+::game zone-dodger | LAANC in practice: grab the green L tokens, then punch through the rings. Solid or dashed, blue or magenta - fly in empty-handed and the FAA ends your day.
+
 ## Reading it on the chart
 
 Covered in depth in the sectional-charts lesson, but the pairing to memorize:
@@ -375,6 +377,8 @@ E-designated-to-the-surface - is the sharpest trap in the whole area.
 - MEF is not a legal altitude.
 - 400-over-structure does not defeat §107.41 airspace authorization.
 - TAC is a chart, not a broadcast.
+
+::game zone-dodger | You just learned to read the rings - now survive them. B and C are solid, D and surface-E are dashed, and none of them care how good your reasons were.
 `,
   },
   {
@@ -489,6 +493,8 @@ Why: Stable air is smooth and traps haze and fog - poor visibility. Unstable air
    warm inflow that fed the storm, and it starves.
 
 ::fig thunderstorm-stages | The mature stage is the tell: updrafts and downdrafts coexisting, and precipitation starting to fall.
+
+::game storm-chaser | Live practice: cells build from harmless cumulus into red, sparking mature monsters, then fizzle. Only the mature ones will eat your drone - which is exactly the exam's point.
 
 Part 107 doesn't name a standoff distance from storms, but visibility and
 cloud-clearance rules make flying near one effectively illegal as well as dumb.
