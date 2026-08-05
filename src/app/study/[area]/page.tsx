@@ -9,6 +9,8 @@ import { AREA_TITLES } from "@/lib/session";
 import { loadMastery, isMastered } from "@/lib/mastery";
 import { BADGES, type BadgeId, loadEarned } from "@/lib/badges";
 import { BadgeIcon } from "@/components/Badges";
+import { lessonsForArea } from "@/content/lessons";
+import { readLessons } from "@/lib/lesson-progress";
 
 /** The briefing before the questions. Clicking an area on the flight path
  *  lands here: what the area actually covers, how the FAA weights it, your
@@ -57,6 +59,9 @@ export default function StudyAreaPage() {
   const [tasks, setTasks] = useState<TaskRow[]>([]);
   const [mastered, setMastered] = useState(0);
   const [badgeEarned, setBadgeEarned] = useState(false);
+  const [lessonsRead, setLessonsRead] = useState<Set<string>>(new Set());
+
+  useEffect(() => setLessonsRead(readLessons()), []);
 
   useEffect(() => {
     if (!area) return;
@@ -177,6 +182,39 @@ export default function StudyAreaPage() {
                   {t.code}
                 </span>
                 {t.title}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {lessonsForArea(area).length > 0 && (
+        <div className="mt-5 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6">
+          <h2 className="font-semibold">Learn it first</h2>
+          <p className="mt-1 text-sm text-[var(--muted)]">
+            Ground-school lessons for this area. Read, then drill.
+          </p>
+          <ul className="mt-4 space-y-2">
+            {lessonsForArea(area).map((l) => (
+              <li key={l.slug}>
+                <Link
+                  href={`/learn/${l.slug}`}
+                  className="flex items-center gap-3 text-sm transition-colors hover:text-[var(--accent)]"
+                >
+                  <span
+                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px] ${
+                      lessonsRead.has(l.slug)
+                        ? "border-[var(--accent)] bg-[var(--accent)] text-black"
+                        : "border-[var(--border)] text-[var(--muted)]"
+                    }`}
+                  >
+                    {lessonsRead.has(l.slug) ? "✓" : ""}
+                  </span>
+                  {l.title}
+                  <span className="text-xs text-[var(--muted)]">
+                    {l.minutes} min
+                  </span>
+                </Link>
               </li>
             ))}
           </ul>

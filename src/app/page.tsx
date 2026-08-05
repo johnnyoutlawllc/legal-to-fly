@@ -152,6 +152,12 @@ export default function Home() {
               Start today&apos;s drill
             </Link>
             <Link
+              href="/learn"
+              className="inline-flex h-12 items-center justify-center rounded-lg border border-[var(--border)] px-6 font-medium transition-colors hover:bg-[var(--surface)]"
+            >
+              Read the ground school
+            </Link>
+            <Link
               href="#path"
               className="inline-flex h-12 items-center justify-center rounded-lg border border-[var(--border)] px-6 font-medium transition-colors hover:bg-[var(--surface)]"
             >
