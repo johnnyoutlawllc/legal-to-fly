@@ -871,8 +871,8 @@ The RPIC must be in condition to fly; these are the testable degraders:
     minutes: 3,
     acs: ["UA.I.C","UA.I.E"],
     cites: ["14 CFR 107.7","14 CFR 107.39","14 CFR 107.57"],
-    body: `Compiled largely from MikeSytes' "Uncovered" video - topics his subscribers
-reported from real exams that standard study guides skip - plus test mechanics.
+    body: `The topics test-takers keep reporting from real exams that standard study
+guides skip, plus the mechanics of the test itself.
 
 ## The mechanics
 
