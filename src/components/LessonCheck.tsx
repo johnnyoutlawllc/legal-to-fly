@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useLearningStyle } from "@/lib/style";
 import { useInstructor } from "@/lib/instructor";
 import { CHECK_VOICE } from "@/lib/instructors";
 
@@ -11,13 +10,9 @@ import { CHECK_VOICE } from "@/lib/instructors";
 
 const LETTERS = ["A", "B", "C", "D"];
 
-const RIGHT = {
-  serious: ["Nailed it."],
-  playful: ["Nailed it.", "Full send!", "Cleared for takeoff.", "Certified airspace nerd."],
-};
-const WRONG = {
-  serious: ["Not quite."],
-  playful: ["Womp womp.", "The FAA would like a word.", "Hard landing. Read on.", "Denied. LAANC says no."],
+const DEFAULT = {
+  right: ["Nailed it."],
+  wrong: ["Not quite."],
 };
 
 const pick = (a: string[]) => a[Math.floor(Math.random() * a.length)];
@@ -33,7 +28,6 @@ export default function LessonCheck({
   correct: number;
   why: string;
 }) {
-  const { style } = useLearningStyle();
   const { instructor } = useInstructor();
   const [picked, setPicked] = useState<number | null>(null);
   const [verdict, setVerdict] = useState("");
@@ -42,9 +36,7 @@ export default function LessonCheck({
 
   const answer = (j: number) => {
     setPicked(j);
-    const bank = instructor
-      ? CHECK_VOICE[instructor]
-      : { right: RIGHT[style], wrong: WRONG[style] };
+    const bank = instructor ? CHECK_VOICE[instructor] : DEFAULT;
     setVerdict(pick(j === correct ? bank.right : bank.wrong) + " ");
   };
 

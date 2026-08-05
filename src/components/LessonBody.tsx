@@ -1,7 +1,6 @@
 import React from "react";
 import LessonFigure from "./LessonFigures";
 import LessonCheck from "./LessonCheck";
-import LessonGame from "./LessonGame";
 
 /** Renders the constrained markdown used by ground-school lessons: ##/###
  *  headings, paragraphs, -/1. lists (with indented continuations), pipe
@@ -53,7 +52,6 @@ type Block =
   | { t: "ul" | "ol"; items: string[] }
   | { t: "table"; rows: string[][] }
   | { t: "fig"; name: string; caption?: string }
-  | { t: "game"; name: string; caption?: string }
   | { t: "check"; q: string; choices: string[]; correct: number; why: string };
 
 function parse(md: string): Block[] {
@@ -66,13 +64,12 @@ function parse(md: string): Block[] {
       i++;
       continue;
     }
-    if (line.startsWith("::fig ") || line.startsWith("::game ")) {
-      const t = line.startsWith("::fig ") ? ("fig" as const) : ("game" as const);
+    if (line.startsWith("::fig ")) {
       const [name, caption] = line
-        .slice(t === "fig" ? 6 : 7)
+        .slice(6)
         .split("|")
         .map((s) => s.trim());
-      blocks.push({ t, name, caption });
+      blocks.push({ t: "fig", name, caption });
       i++;
       continue;
     }
@@ -185,8 +182,6 @@ export default function LessonBody({ md }: { md: string }) {
         switch (b.t) {
           case "fig":
             return <LessonFigure key={i} name={b.name} caption={b.caption} />;
-          case "game":
-            return <LessonGame key={i} name={b.name} intro={b.caption} />;
           case "check":
             return (
               <LessonCheck

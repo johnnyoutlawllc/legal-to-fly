@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { AuthProvider } from "@/lib/auth";
-import { LearningStyleProvider } from "@/lib/style";
 import { InstructorProvider } from "@/lib/instructor";
-import StyleToggle from "@/components/StyleToggle";
+import GuideSelect from "@/components/GuideSelect";
 import InstructorGuide from "@/components/InstructorGuide";
 import "./globals.css";
 
@@ -20,13 +19,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <AuthProvider>
-          <LearningStyleProvider>
-            <InstructorProvider>
-              {children}
-              <StyleToggle />
-              <InstructorGuide />
-            </InstructorProvider>
-          </LearningStyleProvider>
+          <InstructorProvider>
+            {children}
+            <GuideSelect />
+            <InstructorGuide />
+          </InstructorProvider>
         </AuthProvider>
       </body>
     </html>
