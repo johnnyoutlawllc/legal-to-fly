@@ -33,11 +33,7 @@ export default function LearnPage() {
         <p className="text-sm uppercase tracking-widest text-[var(--muted)]">
           Ground school
         </p>
-        <h1
-          className="mt-2 text-3xl font-semibold tracking-tight"
-          data-ltf-hl
-          data-ltf-tip="Read in order. Charts first, then airspace, weather, and judgment."
-        >
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight">
           The lessons behind the questions
         </h1>
         <p className="mt-4 max-w-2xl leading-7 text-[var(--muted)]">
