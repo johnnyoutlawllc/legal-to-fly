@@ -199,7 +199,12 @@ export default function LessonBody({ md }: { md: string }) {
             );
           case "h2":
             return (
-              <h2 key={i} className="pt-4 text-xl font-semibold tracking-tight">
+              <h2
+                key={i}
+                className="pt-4 text-xl font-semibold tracking-tight"
+                data-ltf-hl
+                data-ltf-tip="Section heading: exam-sized idea. Slow down here."
+              >
                 {inline(b.text)}
               </h2>
             );

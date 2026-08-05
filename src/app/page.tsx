@@ -2,6 +2,8 @@ import Link from "next/link";
 import { AuthButton } from "@/components/AuthButton";
 import { Mark } from "@/components/Mark";
 import { FlightPath } from "@/components/FlightPath";
+import HomeHero from "@/components/HomeHero";
+import InstructorPicker from "@/components/InstructorPicker";
 
 function Ext({ href, children }: { href: string; children: React.ReactNode }) {
   return (
@@ -130,58 +132,17 @@ export default function Home() {
       </header>
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-6">
-        <section className="py-20 sm:py-24">
-          <p className="mb-4 text-sm font-medium uppercase tracking-widest text-[var(--accent)]">
-            FAA Part 107 · Remote Pilot Certificate
-          </p>
-          <h1 className="max-w-3xl text-4xl font-semibold leading-tight tracking-tight sm:text-6xl">
-            You already know how to fly. Now make it official.
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--muted)]">
-            The Part 107 test is the only thing between your drone and getting
-            paid to fly it. We turned studying for it into a game: five areas
-            to clear, progress bars that only go up, badges for the shelf,
-            and a daily ten-question drill that does the remembering for you.
-          </p>
+        <HomeHero />
 
-          <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/drill"
-              className="inline-flex h-12 items-center justify-center rounded-lg bg-[var(--accent)] px-6 font-medium text-black transition-opacity hover:opacity-90"
-            >
-              Start today&apos;s drill
-            </Link>
-            <Link
-              href="/learn"
-              className="inline-flex h-12 items-center justify-center rounded-lg border border-[var(--border)] px-6 font-medium transition-colors hover:bg-[var(--surface)]"
-            >
-              Read the ground school
-            </Link>
-            <Link
-              href="#path"
-              className="inline-flex h-12 items-center justify-center rounded-lg border border-[var(--border)] px-6 font-medium transition-colors hover:bg-[var(--surface)]"
-            >
-              See your flight path
-            </Link>
-            <Link
-              href="/exam"
-              className="inline-flex h-12 items-center justify-center rounded-lg border border-[var(--border)] px-6 font-medium transition-colors hover:bg-[var(--surface)]"
-            >
-              Take a mock exam
-            </Link>
-          </div>
-
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-[var(--muted)]">
-            Free, no account needed. Ten questions a day is the whole strategy.
-            The drill brings back what you miss right before you&apos;d forget it.
-          </p>
-        </section>
+        <InstructorPicker />
 
         <FlightPath />
 
         <section
           id="how"
           className="grid gap-5 border-t border-[var(--border)] py-16 sm:grid-cols-3"
+          data-ltf-hl
+          data-ltf-tip="Three pillars: real exam shape, citations on every answer, ACS weak-spot reports."
         >
           {[
             {

@@ -31,3 +31,105 @@ body {
   color: var(--text);
   -webkit-font-smoothing: antialiased;
 }
+
+/* Instructor guide avatars */
+@keyframes ltf-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+@keyframes ltf-sway {
+  0%,
+  100% {
+    transform: rotate(-2deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+@keyframes ltf-tail {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(12deg);
+  }
+}
+@keyframes ltf-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  96% {
+    transform: scaleY(0.1);
+  }
+}
+@keyframes ltf-beer {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(1px) rotate(4deg);
+  }
+}
+@keyframes ltf-hl-pulse {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes ltf-paw {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(4px);
+  }
+}
+
+.ltf-avatar-bob {
+  transform-origin: 40px 70px;
+  animation: ltf-bob 2.4s ease-in-out infinite;
+}
+.ltf-avatar-sway {
+  transform-origin: 40px 70px;
+  animation: ltf-sway 3.2s ease-in-out infinite;
+}
+.ltf-avatar-cat {
+  transform-origin: 40px 60px;
+  animation: ltf-bob 3s ease-in-out infinite;
+}
+.ltf-avatar-tail {
+  transform-origin: 18px 50px;
+  animation: ltf-tail 2.2s ease-in-out infinite;
+}
+.ltf-avatar-blink {
+  transform-origin: center;
+  animation: ltf-blink 4s ease-in-out infinite;
+}
+.ltf-avatar-beer {
+  transform-origin: bottom center;
+  animation: ltf-beer 1.8s ease-in-out infinite;
+}
+.ltf-hl-ring {
+  animation: ltf-hl-pulse 1.6s ease-in-out infinite;
+}
+.ltf-cat-paw {
+  display: inline-block;
+  animation: ltf-paw 1.2s ease-in-out infinite;
+}
+
+body.ltf-has-guide {
+  padding-bottom: 7rem;
+}

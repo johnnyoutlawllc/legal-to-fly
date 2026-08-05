@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useLearningStyle } from "@/lib/style";
+import { useInstructor } from "@/lib/instructor";
+import { CHECK_VOICE } from "@/lib/instructors";
 
 /** Inline tap-to-answer knowledge check used inside lesson bodies via the
  *  `::check ... ::` block. Deliberately not graded or recorded anywhere —
@@ -11,11 +13,11 @@ const LETTERS = ["A", "B", "C", "D"];
 
 const RIGHT = {
   serious: ["Nailed it."],
-  playful: ["Nailed it. 🎯", "Full send! 🚀", "Cleared for takeoff. 🛫", "Certified airspace nerd. 🤓"],
+  playful: ["Nailed it.", "Full send!", "Cleared for takeoff.", "Certified airspace nerd."],
 };
 const WRONG = {
   serious: ["Not quite."],
-  playful: ["Womp womp. 📉", "The FAA would like a word. 📋", "Hard landing — read on. 💥", "Denied. LAANC says no. 🚫"],
+  playful: ["Womp womp.", "The FAA would like a word.", "Hard landing. Read on.", "Denied. LAANC says no."],
 };
 
 const pick = (a: string[]) => a[Math.floor(Math.random() * a.length)];
@@ -32,6 +34,7 @@ export default function LessonCheck({
   why: string;
 }) {
   const { style } = useLearningStyle();
+  const { instructor } = useInstructor();
   const [picked, setPicked] = useState<number | null>(null);
   const [verdict, setVerdict] = useState("");
   const answered = picked !== null;
@@ -39,11 +42,19 @@ export default function LessonCheck({
 
   const answer = (j: number) => {
     setPicked(j);
-    setVerdict(pick(j === correct ? RIGHT[style] : WRONG[style]) + " ");
+    const bank = instructor
+      ? CHECK_VOICE[instructor]
+      : { right: RIGHT[style], wrong: WRONG[style] };
+    setVerdict(pick(j === correct ? bank.right : bank.wrong) + " ");
   };
 
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
+    <div
+      className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5"
+      data-ltf-hl
+      data-ltf-tip="Quick checks keep reading active. They are not graded."
+      data-ltf-myth="Skip these. Real pilots don't need practice questions."
+    >
       <p className="text-xs font-semibold uppercase tracking-widest text-[var(--accent)]">
         ✈ Quick check
       </p>

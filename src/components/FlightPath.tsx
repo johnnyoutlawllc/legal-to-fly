@@ -68,7 +68,12 @@ export function FlightPath() {
   }, [progress]);
 
   return (
-    <section id="path" className="border-t border-[var(--border)] py-16">
+    <section
+      id="path"
+      className="border-t border-[var(--border)] py-16"
+      data-ltf-hl
+      data-ltf-tip="Five ACS areas. Fill every bar and you are mock-exam ready."
+    >
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight">Your flight path</h2>

@@ -183,7 +183,12 @@ export default function DrillPage() {
           <p className="text-sm uppercase tracking-widest text-[var(--muted)]">
             Daily drill
           </p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight">
+          <h1
+            className="mt-3 text-3xl font-semibold tracking-tight"
+            data-ltf-hl
+            data-ltf-tip="Ten questions. Misses requeue until you clear them."
+            data-ltf-myth="Just tap anything. Streaks are all that matter."
+          >
             {doneToday
               ? "Done for today. Extra credit is open."
               : "Five minutes. Ten questions."}

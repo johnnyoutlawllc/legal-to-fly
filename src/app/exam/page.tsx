@@ -156,7 +156,14 @@ export default function ExamPage() {
     return (
       <Shell>
         <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-8">
-          <h1 className="text-2xl font-semibold tracking-tight">Mock exam</h1>
+          <h1
+            className="text-2xl font-semibold tracking-tight"
+            data-ltf-hl
+            data-ltf-tip="Sixty questions, two hours, seventy percent. No feedback until you submit."
+            data-ltf-myth="Blank is safer than a guess. Skip what you don't know."
+          >
+            Mock exam
+          </h1>
           <p className="mt-3 leading-7 text-[var(--muted)]">
             Sixty questions, two hours, seventy percent to pass, the same shape
             as the real Unmanned Aircraft General exam. Questions are drawn to

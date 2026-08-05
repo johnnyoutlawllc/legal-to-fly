@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { AuthProvider } from "@/lib/auth";
 import { LearningStyleProvider } from "@/lib/style";
+import { InstructorProvider } from "@/lib/instructor";
 import StyleToggle from "@/components/StyleToggle";
+import InstructorGuide from "@/components/InstructorGuide";
 import "./globals.css";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
@@ -19,8 +21,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <AuthProvider>
           <LearningStyleProvider>
-            {children}
-            <StyleToggle />
+            <InstructorProvider>
+              {children}
+              <StyleToggle />
+              <InstructorGuide />
+            </InstructorProvider>
           </LearningStyleProvider>
         </AuthProvider>
       </body>
