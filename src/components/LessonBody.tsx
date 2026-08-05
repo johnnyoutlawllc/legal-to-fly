@@ -1,8 +1,13 @@
 import React from "react";
+import LessonFigure from "./LessonFigures";
+import LessonCheck from "./LessonCheck";
 
 /** Renders the constrained markdown used by ground-school lessons: ##/###
  *  headings, paragraphs, -/1. lists (with indented continuations), pipe
  *  tables, fenced code blocks, and `code` / **bold** / *italic* inlines.
+ *  Two interactive block types on top: `::fig <name> | caption` renders a
+ *  diagram from LessonFigures, and `::check ... ::` renders a tap-to-answer
+ *  knowledge check (correct choice marked with a trailing *).
  *  Not a general markdown engine; lesson bodies are authored to fit it. */
 
 function inline(text: string, key = 0): React.ReactNode[] {
@@ -45,7 +50,9 @@ type Block =
   | { t: "h2" | "h3" | "p"; text: string }
   | { t: "code"; lines: string[] }
   | { t: "ul" | "ol"; items: string[] }
-  | { t: "table"; rows: string[][] };
+  | { t: "table"; rows: string[][] }
+  | { t: "fig"; name: string; caption?: string }
+  | { t: "check"; q: string; choices: string[]; correct: number; why: string };
 
 function parse(md: string): Block[] {
   const lines = md.split("\n");
@@ -55,6 +62,40 @@ function parse(md: string): Block[] {
     const line = lines[i];
     if (!line.trim()) {
       i++;
+      continue;
+    }
+    if (line.startsWith("::fig ")) {
+      const [name, caption] = line
+        .slice(6)
+        .split("|")
+        .map((s) => s.trim());
+      blocks.push({ t: "fig", name, caption });
+      i++;
+      continue;
+    }
+    if (line.startsWith("::check")) {
+      i++;
+      let q = "";
+      let why = "";
+      let correct = 0;
+      const choices: string[] = [];
+      while (i < lines.length && lines[i].trim() !== "::") {
+        const l = lines[i].trim();
+        if (l.startsWith("Q:")) q = l.slice(2).trim();
+        else if (l.startsWith("Why:")) why = l.slice(4).trim();
+        else if (l.startsWith("- ")) {
+          let c = l.slice(2).trim();
+          if (c.endsWith("*")) {
+            correct = choices.length;
+            c = c.slice(0, -1).trim();
+          }
+          choices.push(c);
+        } else if (why && l) why += " " + l;
+        else if (q && l) q += " " + l;
+        i++;
+      }
+      i++; // closing ::
+      if (q && choices.length) blocks.push({ t: "check", q, choices, correct, why });
       continue;
     }
     if (line.startsWith("```")) {
@@ -120,6 +161,7 @@ function parse(md: string): Block[] {
       i < lines.length &&
       lines[i].trim() &&
       !lines[i].startsWith("#") &&
+      !lines[i].startsWith("::") &&
       !lines[i].startsWith("```") &&
       !lines[i].trimStart().startsWith("|") &&
       !lines[i].match(/^(\s*)([-*]|\d+\.)\s+/)
@@ -138,6 +180,18 @@ export default function LessonBody({ md }: { md: string }) {
     <div className="space-y-5">
       {blocks.map((b, i) => {
         switch (b.t) {
+          case "fig":
+            return <LessonFigure key={i} name={b.name} caption={b.caption} />;
+          case "check":
+            return (
+              <LessonCheck
+                key={i}
+                q={b.q}
+                choices={b.choices}
+                correct={b.correct}
+                why={b.why}
+              />
+            );
           case "h2":
             return (
               <h2 key={i} className="pt-4 text-xl font-semibold tracking-tight">

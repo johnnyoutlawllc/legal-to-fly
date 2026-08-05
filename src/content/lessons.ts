@@ -1,6 +1,7 @@
-/** Ground school lessons. Generated from the project's training notes;
- *  edit the source markdown and regenerate rather than editing bodies here.
- *  Bodies are constrained markdown rendered by components/Lesson.tsx. */
+/** Ground school lessons. Prose generated from the project's training notes;
+ *  the `::fig <name> | caption` and `::check ... ::` interactive blocks are
+ *  authored in place here. Bodies are constrained markdown rendered by
+ *  components/LessonBody.tsx (figures live in components/LessonFigures.tsx). */
 
 export type Lesson = {
   slug: string;
@@ -27,6 +28,8 @@ G. There is no Class F in the United States. "Controlled" means ATC is providing
 separation services there - and for a drone it means **you need FAA authorization
 before flying in it** (B, C, D, and Class E designated to the surface for an
 airport - that's the §107.41 list).
+
+::fig airspace-profile | The whole system in one picture. Your 400-ft world lives in Class G under the E floors most of the time; B, C, D and surface-E need authorization first.
 
 ## AGL vs MSL first
 
@@ -73,6 +76,14 @@ most). Where most drone flying happens. No authorization needed - but every
 Part 107 operating rule still applies: 400 AGL, VLOS, visibility, cloud
 clearances.
 
+::check
+Q: Your drone is at 300 ft AGL inside a faded magenta vignette. Whose airspace are you in, and do you need authorization?
+- Class E - authorization required
+- Class E - no authorization needed
+- Class G - no authorization needed *
+Why: The vignette means Class E starts at 700 ft AGL there. Below that floor you are in Class G, and Class G never needs airspace authorization - though every other Part 107 rule still applies.
+::
+
 ## Authorization mechanics
 
 - **LAANC** (Low Altitude Authorization and Notification Capability): near
@@ -101,6 +112,14 @@ Covered in depth in the sectional-charts lesson, but the pairing to memorize:
 The trap: **no ring doesn't mean no airspace.** An unmarked airport sits in
 Class G with Class E starting at 1,200 AGL. Airspace exists everywhere; the
 chart only draws the boundaries that differ from the default.
+
+::check
+Q: Which flavor of Class E is on §107.41's authorization list?
+- Class E designated to the surface for an airport *
+- All Class E below 18,000 ft
+- Class E starting at 700 ft AGL
+Why: Only surface-designated Class E (the dashed magenta ring) requires authorization. Class E at 700 or 1,200 AGL above you is legal drone airspace.
+::
 
 ## Phonetic alphabet
 
@@ -157,6 +176,14 @@ Scale: 1:500,000. One inch is about 6.9 nautical miles.
   pilot care about this flag": **manned traffic concentrates there**, because
   pilots and ATC use it as a visual reporting point.
 
+::check
+Q: A blue airport symbol on the sectional tells you the airport…
+- sits inside Class B airspace
+- has a control tower *
+- has a paved runway longer than 8,069 ft
+Why: Color = tower, shape = runway. Blue means towered - and a towered airport can sit in Class C or D. The exam stages this trap constantly.
+::
+
 ## The airport data block
 
 The text next to the airport symbol, top to bottom. Example, DFW-style:
@@ -200,7 +227,17 @@ RP 12R, 30R
   At the biggest airports (LAX, JFK, Dulles) runway numbers and RP notes are
   deliberately absent from the chart - ATC directs everything there.
 
+::check
+Q: The exam asks what frequency gives you the weather at a towered airport. You answer…
+- the control tower frequency
+- the UNICOM frequency
+- the ATIS frequency *
+Why: Weather = ATIS/AWOS/ASOS. The tower frequency is always offered as a choice and is always wrong.
+::
+
 ## Airspace lines (the part that decides whether you need authorization)
+
+::fig chart-lines | Line styles are the whole game: solid means the busiest airspace, dashed means it reaches the surface, faded means an E floor.
 
 - **Solid blue line** = Class B. **Solid magenta** = Class C.
 - **Dashed blue** = Class D. **Dashed magenta** = Class E down to the surface.
@@ -230,6 +267,14 @@ RP 12R, 30R
 - **Mode C veil**: the thin ring labeled MODE C, 30 NM around Class B core
   airports - inside it, aircraft need altitude-reporting transponders. Know
   what the ring is; it isn't a drone authorization boundary.
+
+::check
+Q: A dashed blue box near an airport reads [-25]. Class D runs from the surface up to…
+- 2,500 ft MSL, up to but not including *
+- exactly 2,500 ft MSL
+- 2,500 ft AGL
+Why: Boxed numbers are always MSL, and the minus sign means "up to but not including" - a B or C shelf sits directly on top at 2,500.
+::
 
 ## Special-use airspace
 
@@ -392,6 +437,16 @@ masses is called a front.*
   temperature.** Second sign: the wind shifts (direction and speed). Not
   humidity, not cloud cover - temperature.
 
+::fig fronts | Steep and fast against gentle and slow. Cold fronts build cumulus and drama; warm fronts spread stratus and drizzle.
+
+::check
+Q: The most recognizable sign that a front has passed your position is…
+- a rapid change in temperature *
+- a change in cloud cover
+- a drop in humidity
+Why: Temperature change is the FAA's answer; the wind shifting in direction and speed is the runner-up sign.
+::
+
 ## Stable vs unstable air
 
 The one contrast that decodes half the questions:
@@ -405,6 +460,14 @@ The one contrast that decodes half the questions:
 
 Stable air *feels* nicer and is smoother to fly in, but it traps haze and fog - poor visibility. Unstable air is bumpy but clear. The exam banks on you
 guessing that backwards.
+
+::check
+Q: The forecast says the air over your site is stable. What do you expect?
+- Smooth air but poor visibility *
+- Turbulence and good visibility
+- Building cumulus and showers
+Why: Stable air is smooth and traps haze and fog - poor visibility. Unstable air is bumpy but clear. The exam banks on you guessing it backwards.
+::
 
 ## Clouds
 
@@ -424,6 +487,8 @@ guessing that backwards.
    spreading along the ground.
 3. **Dissipating stage** - downdrafts everywhere; the cold outflow cuts off the
    warm inflow that fed the storm, and it starves.
+
+::fig thunderstorm-stages | The mature stage is the tell: updrafts and downdrafts coexisting, and precipitation starting to fall.
 
 Part 107 doesn't name a standoff distance from storms, but visibility and
 cloud-clearance rules make flying near one effectively illegal as well as dumb.
@@ -508,6 +573,8 @@ station. Get them at aviationweather.gov.
 
 ## METAR, field by field
 
+::fig metar-anatomy | One line of weather, color-coded. Read it out loud: "wind from one-eight-zero at one-five, gusting two-five."
+
 \`\`\`
 METAR KATL 121755Z 18015G25KT 10SM FEW020 BKN250 18/12 A2992 RMK AO2 SLP110
 \`\`\`
@@ -540,6 +607,14 @@ snow; **PK WND** = peak wind since last report; **RAB45** = rain began at :45;
 is saturating - fog and mist are next, and your 3 SM legal visibility is about
 to disappear. \`18/17\` at dusk means don't count on flying at dawn.
 
+::check
+Q: FEW020 in a METAR puts the cloud bases at…
+- 2,000 ft MSL
+- 2,000 ft AGL *
+- 20,000 ft AGL
+Why: Add two zeros, and remember the station measures from the ground - cloud heights in METARs are AGL.
+::
+
 ## TAF, field by field
 
 \`\`\`
@@ -561,6 +636,14 @@ TAF KJFK 121130Z 1212/1318 18012KT P6SM BKN040
 Other change markers you may see: **TEMPO** (temporary fluctuations),
 **BECMG** (gradual becoming), **PROB30** (30% probability). FM is the one the
 exam leans on.
+
+::check
+Q: 18015G25KT. The wind is blowing…
+- toward 180° at 15 knots
+- from 180° magnetic at 25 knots
+- from 180° true at 15 knots, gusting 25 *
+Why: Wind is always FROM the stated direction, in degrees TRUE, in knots. Runways are magnetic; reports are true.
+::
 
 ## How to practice
 
@@ -623,6 +706,16 @@ not about takeoff weight or required lift - distractors will offer both.
   answer choice, not decimal perfection - and yes, a basic calculator is
   allowed at the testing center.
 
+::fig bank-load | Load factor vs bank angle: flat until it isn't. Anchor the 60° = 2G point and read everything else off the curve.
+
+::check
+Q: A 33-lb drone holds altitude in a 30° banked turn (load factor 1.15). The structure is carrying about…
+- 33 lb
+- 38 lb *
+- 66 lb
+Why: Structural load = weight × load factor: 33 × 1.15 ≈ 38 lb. Pick the closest answer - the exam allows a basic calculator.
+::
+
 ## Stalls and the critical angle of attack
 
 A stall is an aerodynamic event, not an engine event: **airflow separates from
@@ -639,6 +732,14 @@ the wing and lift collapses.**
   make enough lift): heavier = stalls faster = worse. It also rises in a
   banked turn, because load factor raises the effective weight - that's why
   steep low turns kill.
+
+::check
+Q: What changes an aircraft's critical angle of attack?
+- Loading it heavier
+- Flying faster
+- Nothing - it is constant for the aircraft *
+Why: The critical angle of attack never changes. Weight and bank change the SPEED at which you reach it, never the angle itself.
+::
 
 ## Density altitude (performance summary)
 
@@ -699,6 +800,8 @@ Five legs, flown as a rectangle around the runway:
 - The crosswind leg's quiet genius: an aircraft with engine trouble right
   after takeoff is already positioned in the pattern to circle back and land.
 
+::fig traffic-pattern | A standard left-hand pattern for runway 27: enter at 45° into the downwind, all turns to the left, land into the wind.
+
 ## Runway numbers
 
 - A runway number is its **magnetic heading rounded to the nearest 10°, with
@@ -709,6 +812,14 @@ Five legs, flown as a rectangle around the runway:
 - **The +180 trick:** "A pilot reports left downwind for runway 16 - what's
   their heading?" Downwind runs opposite the runway: 160° + 180° = **340°**.
   Any "opposite direction" question is an add-or-subtract-180 question.
+
+::check
+Q: A pilot reports "left downwind for runway 16." Their current heading is…
+- 340° *
+- 160°
+- 250°
+Why: Downwind runs opposite the landing direction: 160° + 180° = 340°. Every "opposite direction" question is a ±180 question.
+::
 
 ## Radio and information services
 
@@ -723,6 +834,14 @@ Five legs, flown as a rectangle around the runway:
 - **AWOS / ASOS** - automated weather stations at smaller fields (AWOS-3's
   digit = equipment level). On a "which frequency for weather" question, the
   tower frequency is always the distractor.
+
+::check
+Q: At an airport whose tower closed an hour ago, pilots are announcing their positions on…
+- the CTAF *
+- ATIS
+- UNICOM
+Why: The Common Traffic Advisory Frequency (© on the chart) is where pilots self-announce at non-towered or closed-tower fields - often the same number the tower used, but the point is who is talking: everyone, to everyone. UNICOM is airport services; ATIS is a recording.
+::
 
 ## Signs and surface markings (supplement Figure 65)
 
@@ -740,6 +859,8 @@ runway.**
   dashed lane lines on a road.
 - **Runway incursion** = entering a runway/taxiway without clearance - the
   most preventable accident type at an airport.
+
+::fig hold-short | Same logic as solid vs dashed lane lines on a road: solid side first means stop and get clearance; dashed side first means you are leaving the runway - cross freely.
 
 ## NOTAMs, TFRs, LAANC
 
@@ -801,6 +922,14 @@ sometimes asks for the FAA's antidote phrasing:
 | Macho | "I can handle anything." | "Taking chances is foolish." |
 | Resignation | "What's the point?" | "I'm not helpless. I can make a difference." |
 
+::check
+Q: A pilot shrugs: "Accidents happen to other people, not me." Which hazardous attitude is talking?
+- Macho
+- Invulnerability *
+- Anti-authority
+Why: "It won't happen to me" is invulnerability; the antidote is "It could happen to me." Macho is "I can handle anything."
+::
+
 ## Risk management
 
 Definition: identifying, assessing, and mitigating hazards **before and during**
@@ -813,6 +942,14 @@ flight. The four-step sequence, in order:
 
 **Situational awareness**: perceiving, understanding, and anticipating
 everything affecting the operation - built by experience, lost by fixation.
+
+::check
+Q: The FIRST step of risk management is…
+- assessing the risk
+- identifying the hazard *
+- mitigating with checklists and margins
+Why: Identify, assess, mitigate, then decide and monitor - in that order. "What is the first step" is always identify.
+::
 
 ## Physiological factors
 
@@ -925,6 +1062,16 @@ Three axes intersect at the center of gravity. The pairs to memorize cold:
   a firm toss - it hurts, it doesn't hospitalize. 25 ft-lb is the same ball
   thrown hard. The category limits are set where impacts stop being bruises.
 
+::fig ke-categories | The counterintuitive part: the LOWER energy cap buys the GREATER freedom over people. Category 4 is the odd one out - paperwork, not physics.
+
+::check
+Q: Which category of operations over people requires an FAA airworthiness certificate?
+- Category 2
+- Category 3
+- Category 4 *
+Why: Category 4 is the only one - the question appears on real exams nearly verbatim. Categories 2 and 3 are defined by kinetic energy limits instead: 11 and 25 ft-lb.
+::
+
 ## Drugs, alcohol, and the FAA
 
 - Conviction (federal OR state) for growing/possessing/selling/transporting
@@ -935,6 +1082,14 @@ Three axes intersect at the center of gravity. The pairs to memorize cold:
 - Medical marijuana: federally, marijuana is still a controlled substance, and
   the FAA recognizes **no medical exemption**. State cards don't matter to
   §107.57.
+
+::check
+Q: A state court convicts an applicant of selling marijuana. Their remote pilot application is…
+- denied for one year from the conviction date *
+- denied for 18 months
+- denied permanently
+Why: One year, and a federal OR state conviction both count. "18 months" and "never" are the standard distractors, and state medical-marijuana cards change nothing federally.
+::
 
 ## FAA inspection
 
