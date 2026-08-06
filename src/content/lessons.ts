@@ -31,6 +31,8 @@ airport - that's the §107.41 list).
 
 ::fig airspace-profile | The whole system in one picture. Your 400-ft world lives in Class G under the E floors most of the time; B, C, D and surface-E need authorization first.
 
+::sim airspace-tap | Tap each class to see its chart marking, whether you need authorization, and the trap the exam sets with it.
+
 ## AGL vs MSL first
 
 - **AGL** = above ground level: height above the dirt under you.
@@ -239,6 +241,8 @@ Why: Weather = ATIS/AWOS/ASOS. The tower frequency is always offered as a choice
 
 ::fig chart-lines | Line styles are the whole game: solid means the busiest airspace, dashed means it reaches the surface, faded means an E floor.
 
+::sim chart-line-drill | Drill it until it is reflex: name the airspace from the line alone and build a streak.
+
 - **Solid blue line** = Class B. **Solid magenta** = Class C.
 - **Dashed blue** = Class D. **Dashed magenta** = Class E down to the surface.
 - **Faded/shaded magenta vignette** = Class E starts at **700 ft AGL** inside
@@ -396,6 +400,8 @@ what the atmosphere is doing, and decoding the reports that describe it
 - **Cloud clearance: 500 ft below, 2,000 ft horizontally** from any cloud.
 - The **remote pilot in command** is responsible for checking all of it before
   flight. (Any "who is responsible" question: the RPIC.)
+
+::sim cloud-clearance | Drag the drone around the cloud. Green dashed lines are the §107.51 minimums: 500 ft below, 2,000 ft horizontal.
 
 ## What makes weather
 
@@ -575,6 +581,8 @@ station. Get them at aviationweather.gov.
 
 ::fig metar-anatomy | One line of weather, color-coded. Read it out loud: "wind from one-eight-zero at one-five, gusting two-five."
 
+::sim metar-decoder | Three real-world METARs: decode every token, then make the go / no-go call yourself.
+
 \`\`\`
 METAR KATL 121755Z 18015G25KT 10SM FEW020 BKN250 18/12 A2992 RMK AO2 SLP110
 \`\`\`
@@ -707,6 +715,8 @@ not about takeoff weight or required lift - distractors will offer both.
   allowed at the testing center.
 
 ::fig bank-load | Load factor vs bank angle: flat until it isn't. Anchor the 60° = 2G point and read everything else off the curve.
+
+::sim bank-load-sim | Drag the bank angle and watch the G load and structural weight move. Find the point where it starts running away.
 
 ::check
 Q: A 33-lb drone holds altitude in a 30° banked turn (load factor 1.15). The structure is carrying about…
@@ -1063,6 +1073,8 @@ Three axes intersect at the center of gravity. The pairs to memorize cold:
   thrown hard. The category limits are set where impacts stop being bruises.
 
 ::fig ke-categories | The counterintuitive part: the LOWER energy cap buys the GREATER freedom over people. Category 4 is the odd one out - paperwork, not physics.
+
+::sim ke-calc | Set a weight and an impact speed and see which category the kinetic energy lands in. Watch what speed does versus weight.
 
 ::check
 Q: Which category of operations over people requires an FAA airworthiness certificate?

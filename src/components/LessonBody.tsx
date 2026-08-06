@@ -1,6 +1,7 @@
 import React from "react";
 import LessonFigure from "./LessonFigures";
 import LessonCheck from "./LessonCheck";
+import LessonSim from "./LessonSims";
 
 /** Renders the constrained markdown used by ground-school lessons: ##/###
  *  headings, paragraphs, -/1. lists (with indented continuations), pipe
@@ -52,6 +53,7 @@ type Block =
   | { t: "ul" | "ol"; items: string[] }
   | { t: "table"; rows: string[][] }
   | { t: "fig"; name: string; caption?: string }
+  | { t: "sim"; name: string; caption?: string }
   | { t: "check"; q: string; choices: string[]; correct: number; why: string };
 
 function parse(md: string): Block[] {
@@ -70,6 +72,15 @@ function parse(md: string): Block[] {
         .split("|")
         .map((s) => s.trim());
       blocks.push({ t: "fig", name, caption });
+      i++;
+      continue;
+    }
+    if (line.startsWith("::sim ")) {
+      const [name, caption] = line
+        .slice(6)
+        .split("|")
+        .map((s) => s.trim());
+      blocks.push({ t: "sim", name, caption });
       i++;
       continue;
     }
@@ -182,6 +193,8 @@ export default function LessonBody({ md }: { md: string }) {
         switch (b.t) {
           case "fig":
             return <LessonFigure key={i} name={b.name} caption={b.caption} />;
+          case "sim":
+            return <LessonSim key={i} name={b.name} caption={b.caption} />;
           case "check":
             return (
               <LessonCheck
