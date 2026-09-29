@@ -2,15 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { areaFromElement, type Question } from "@/lib/types";
 import {
   AREA_TITLES,
-  EXAM_QUESTION_COUNT,
   EXAM_SECONDS,
   PASS_PERCENT,
   SELECT_QUESTION_COLUMNS,
-  buildSession,
+  buildExamSession,
   formatClock,
   prepare,
 } from "@/lib/session";
@@ -19,6 +19,7 @@ import { claimNewBadges, type BadgeDef } from "@/lib/badges";
 import { NewBadges } from "@/components/Badges";
 import { useAuth } from "@/lib/auth";
 import { saveTestAttempt, syncTestAttempts } from "@/lib/test-attempts";
+import { FAA_SUPPLEMENT_URL } from "@/content/exam-figure-questions";
 
 type Phase = "loading" | "ready" | "running" | "done" | "error";
 
@@ -70,7 +71,7 @@ export default function ExamPage() {
     attemptId.current = crypto.randomUUID();
     syncedUser.current = null;
     setSaveStatus("");
-    setQuestions(buildSession(pool, EXAM_QUESTION_COUNT));
+    setQuestions(buildExamSession(pool));
     setAnswers({});
     setFlagged(new Set());
     setIndex(0);
@@ -202,10 +203,9 @@ export default function ExamPage() {
             you finish, and the clock does not stop.
           </p>
           <p className="mt-4 rounded-lg border border-[var(--accent)]/50 bg-[var(--accent)]/10 p-4 text-sm leading-6">
-            Readiness check: this bank does not yet include questions that require
-            reading an actual FAA chart figure or doing a calculation. A passing
-            score here is useful practice, but it does not predict your UAG score.
-            Before booking, work through the{" "}
+            This mock includes FAA figure references and calculations, but its
+            question bank is smaller than the real test bank. Treat the score
+            as practice, not a prediction of your UAG score. Also work through the{" "}
             <a href="https://www.faa.gov/sites/faa.gov/files/training_testing/testing/test_questions/uag_questions.pdf" target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] underline underline-offset-2">FAA sample questions</a>
             {" "}with the{" "}
             <a href="https://www.faa.gov/training_testing/testing/supplements" target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] underline underline-offset-2">FAA testing supplement</a>.
@@ -246,8 +246,8 @@ export default function ExamPage() {
             {PASS_PERCENT}%.
           </p>
           <p className="mt-4 rounded-lg border border-[var(--accent)]/50 bg-[var(--accent)]/10 p-4 text-sm leading-6">
-            This score does not cover chart-figure interpretation or calculation
-            questions. Review the{" "}
+            This mock covers some chart figures and calculations, but it is not
+            a calibrated predictor of the FAA exam. Review the{" "}
             <a href="https://www.faa.gov/sites/faa.gov/files/training_testing/testing/test_questions/uag_questions.pdf" target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] underline underline-offset-2">FAA sample questions</a>
             {" "}and their referenced figures before treating it as a readiness measure.
           </p>
@@ -356,6 +356,7 @@ export default function ExamPage() {
                     {ok ? "Correct" : picked ? "Wrong" : "Skipped"}
                   </span>
                 </div>
+                <QuestionFigure question={q} />
                 <p className="mt-3 text-sm text-[var(--muted)]">
                   <span className="text-[var(--correct)]">
                     Answer {correct?.label}:
@@ -430,6 +431,7 @@ export default function ExamPage() {
 
       <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 sm:p-8">
         <p className="text-lg leading-8">{current.stem}</p>
+        <QuestionFigure question={current} />
 
         <div className="mt-6 space-y-3">
           {current.choices.map((c) => {
@@ -494,6 +496,28 @@ export default function ExamPage() {
         </div>
       </div>
     </Shell>
+  );
+}
+
+function QuestionFigure({ question }: { question: Question }) {
+  if (!question.figure) return null;
+  return (
+    <figure className="mt-5">
+      <a href={question.figure.src} target="_blank" rel="noopener noreferrer" title="Open full-size figure">
+        <Image
+          src={question.figure.src}
+          alt={question.figure.alt}
+          width={990}
+          height={1280}
+          unoptimized
+          className="h-auto w-full rounded-lg border border-[var(--border)]"
+        />
+      </a>
+      <figcaption className="mt-2 text-xs leading-5 text-[var(--muted)]">
+        {question.figure.label} · Tap or click to enlarge · Source:{" "}
+        <a href={FAA_SUPPLEMENT_URL} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">FAA-CT-8080-2H</a>
+      </figcaption>
+    </figure>
   );
 }
 

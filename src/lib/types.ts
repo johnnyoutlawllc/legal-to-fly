@@ -18,6 +18,11 @@ export type Question = {
   difficulty: Difficulty
   citation: string | null
   choices: Choice[]
+  figure?: {
+    src: string
+    label: string
+    alt: string
+  }
 }
 
 export type AcsArea = {

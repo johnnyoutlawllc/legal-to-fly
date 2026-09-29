@@ -195,7 +195,7 @@ export default function Home() {
           {[
             {
               h: "The real test, not a lookalike",
-              p: "Three answer choices, 60 questions, two hours on the mock. Use it to rehearse timing and core topics; the current bank does not yet test FAA chart figures or calculations.",
+              p: "Three answer choices, 60 questions, two hours on the mock. Every run now includes FAA chart figures and calculations. Use it to rehearse timing and core topics; no small practice bank can predict the real score.",
             },
             {
               h: "Every answer shows its receipts",
