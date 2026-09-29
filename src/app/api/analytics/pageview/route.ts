@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const DEVICE_TYPES = new Set(["desktop", "tablet", "mobile"]);
 
 export async function POST(request: Request) {
