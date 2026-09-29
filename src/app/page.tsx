@@ -195,7 +195,7 @@ export default function Home() {
           {[
             {
               h: "The real test, not a lookalike",
-              p: "Three answer choices, 60 questions, two hours on the mock. That is the exact shape of the real UAG exam. No four-option questions training the wrong instincts.",
+              p: "Three answer choices, 60 questions, two hours on the mock. Use it to rehearse timing and core topics; the current bank does not yet test FAA chart figures or calculations.",
             },
             {
               h: "Every answer shows its receipts",
@@ -203,7 +203,7 @@ export default function Home() {
             },
             {
               h: "Weak spots in the FAA's language",
-              p: "Fail the real test and the FAA hands you a report of ACS codes. Our mock exam hands you the same list first, so nothing on test day is a surprise.",
+              p: "The FAA reports ACS codes for missed questions. Our mock exam shows those codes too, so you can target the topics to revisit.",
             },
           ].map((c) => (
             <div

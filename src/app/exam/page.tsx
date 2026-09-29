@@ -197,10 +197,18 @@ export default function ExamPage() {
         <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-8">
           <h1 className="text-2xl font-semibold tracking-tight">Mock exam</h1>
           <p className="mt-3 leading-7 text-[var(--muted)]">
-            Sixty questions, two hours, seventy percent to pass, the same shape
-            as the real Unmanned Aircraft General exam. Questions are drawn to
-            the FAA&apos;s published area weightings. No feedback until you
-            finish, and the clock does not stop.
+            Sixty questions, two hours, seventy percent to pass. Questions are
+            drawn to the FAA&apos;s published area weightings. No feedback until
+            you finish, and the clock does not stop.
+          </p>
+          <p className="mt-4 rounded-lg border border-[var(--accent)]/50 bg-[var(--accent)]/10 p-4 text-sm leading-6">
+            Readiness check: this bank does not yet include questions that require
+            reading an actual FAA chart figure or doing a calculation. A passing
+            score here is useful practice, but it does not predict your UAG score.
+            Before booking, work through the{" "}
+            <a href="https://www.faa.gov/sites/faa.gov/files/training_testing/testing/test_questions/uag_questions.pdf" target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] underline underline-offset-2">FAA sample questions</a>
+            {" "}with the{" "}
+            <a href="https://www.faa.gov/training_testing/testing/supplements" target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] underline underline-offset-2">FAA testing supplement</a>.
           </p>
           <ul className="mt-6 space-y-2 text-sm text-[var(--muted)]">
             <li>· You can flag questions and come back to them.</li>
@@ -236,6 +244,12 @@ export default function ExamPage() {
           <p className="mt-1 text-[var(--muted)]">
             {scored.correct} of {questions.length} correct. The real exam needs{" "}
             {PASS_PERCENT}%.
+          </p>
+          <p className="mt-4 rounded-lg border border-[var(--accent)]/50 bg-[var(--accent)]/10 p-4 text-sm leading-6">
+            This score does not cover chart-figure interpretation or calculation
+            questions. Review the{" "}
+            <a href="https://www.faa.gov/sites/faa.gov/files/training_testing/testing/test_questions/uag_questions.pdf" target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] underline underline-offset-2">FAA sample questions</a>
+            {" "}and their referenced figures before treating it as a readiness measure.
           </p>
           <p className="mt-3 text-sm text-[var(--muted)]">{saveStatus}</p>
 
