@@ -118,6 +118,9 @@ export default function Home() {
             </span>
           </span>
           <span className="flex items-center gap-3">
+            <Link href="/results" className="text-sm text-[var(--muted)] hover:text-[var(--text)]">
+              Results
+            </Link>
             <AuthButton />
             <Link
               href="/drill"

@@ -5,6 +5,7 @@ import {
   loadMastery,
 } from "@/lib/mastery";
 import { effectiveStreak, loadStreak, today } from "@/lib/srs";
+import { loadTestAttempts } from "@/lib/test-attempts";
 
 /** The badge case. Earned state lives in localStorage as id -> date earned.
  *  Everything a badge needs is derivable from mastery, the streak, and the
@@ -93,7 +94,10 @@ function evaluate(
     if (p.total > 0 && p.mastered === p.total) earned.add(`area-${p.area}` as BadgeId);
   }
 
-  const exams = loadExams();
+  const exams = [
+    ...loadExams(),
+    ...loadTestAttempts().filter((attempt) => attempt.kind === "mock"),
+  ];
   if (exams.length > 0) earned.add("solo");
   if (exams.some((e) => e.pct >= 70)) earned.add("checkride");
   if (exams.some((e) => e.pct >= 90)) earned.add("ace");

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -16,6 +16,8 @@ import {
 import { recordAnswer } from "@/lib/mastery";
 import { claimNewBadges, type BadgeDef } from "@/lib/badges";
 import { NewBadges } from "@/components/Badges";
+import { useAuth } from "@/lib/auth";
+import { saveTestAttempt, syncTestAttempts } from "@/lib/test-attempts";
 
 export default function PracticePage() {
   return (
@@ -32,6 +34,7 @@ export default function PracticePage() {
 }
 
 function Practice() {
+  const { user } = useAuth();
   // ?area=II studies one area of operation; no param is the normal
   // exam-weighted mix. Anything unrecognized falls back to the mix.
   const rawArea = useSearchParams().get("area");
@@ -44,6 +47,11 @@ function Practice() {
   const [picked, setPicked] = useState<string | null>(null);
   const [results, setResults] = useState<Record<string, boolean>>({});
   const [newBadges, setNewBadges] = useState<BadgeDef[]>([]);
+  const [saveStatus, setSaveStatus] = useState("");
+  const attemptId = useRef<string | null>(null);
+  const startedAt = useRef<number | null>(null);
+  const saved = useRef(false);
+  const syncedUser = useRef<string | null>(null);
 
   const draw = useCallback(
     (from: Question[]) =>
@@ -71,6 +79,8 @@ function Practice() {
       }
       const all = prepare(data);
       setPool(all);
+      attemptId.current = crypto.randomUUID();
+      startedAt.current = Date.now();
       setQuestions(draw(all));
     })();
     return () => {
@@ -104,11 +114,18 @@ function Practice() {
 
   // Session over: see whether that unlocked anything.
   useEffect(() => {
-    if (finished && pool.length > 0) setNewBadges(claimNewBadges(pool));
+    if (finished && pool.length > 0) {
+      queueMicrotask(() => setNewBadges(claimNewBadges(pool)));
+    }
   }, [finished, pool]);
 
   // Draw a fresh set from the whole bank rather than reshuffling the same 20.
   const restart = useCallback(() => {
+    attemptId.current = crypto.randomUUID();
+    startedAt.current = Date.now();
+    saved.current = false;
+    syncedUser.current = null;
+    setSaveStatus("");
     setResults({});
     setPicked(null);
     setIndex(0);
@@ -129,6 +146,47 @@ function Practice() {
     }
     return Object.entries(acc).sort((a, b) => a[0].length - b[0].length);
   }, [questions, results]);
+
+  useEffect(() => {
+    if (!finished || !questions || !attemptId.current) return;
+    if (!saved.current) {
+      saved.current = true;
+      const missed = new Map<string, number>();
+      for (const q of questions) {
+        if (!results[q.id]) {
+          missed.set(q.acs_element_code, (missed.get(q.acs_element_code) ?? 0) + 1);
+        }
+      }
+      try {
+        saveTestAttempt({
+          id: attemptId.current,
+          kind: "practice",
+          completedAt: new Date().toISOString(),
+          area,
+          correct: correctCount,
+          total,
+          pct: Math.round((correctCount / total) * 100),
+          byArea: Object.fromEntries(byArea),
+          missedCodes: [...missed].map(([code, count]) => ({ code, count })),
+          elapsedSeconds: startedAt.current === null ? null : Math.max(0, Math.round((Date.now() - startedAt.current) / 1000)),
+        });
+        queueMicrotask(() => setSaveStatus("Saved in this browser"));
+      } catch {
+        saved.current = false;
+        queueMicrotask(() => setSaveStatus("Could not save this result in your browser"));
+        return;
+      }
+    }
+    if (user && syncedUser.current !== user.id) {
+      syncedUser.current = user.id;
+      void syncTestAttempts(user.id)
+        .then(() => setSaveStatus("Saved to your account"))
+        .catch(() => {
+          syncedUser.current = null;
+          setSaveStatus("Saved in this browser; account sync pending");
+        });
+    }
+  }, [finished, questions, results, area, correctCount, total, byArea, user]);
 
   if (error) {
     return (
@@ -164,6 +222,7 @@ function Practice() {
                 : `The real test needs ${PASS_PERCENT}%. Run it again.`}
             </span>
           </p>
+          <p className="mt-3 text-sm text-[var(--muted)]">{saveStatus}</p>
 
           <NewBadges badges={newBadges} />
 
@@ -200,6 +259,12 @@ function Practice() {
           )}
 
           <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              href="/results"
+              className="inline-flex h-11 items-center rounded-lg border border-[var(--border)] px-6 font-medium transition-colors hover:bg-[var(--surface-2)]"
+            >
+              View past results
+            </Link>
             <button
               onClick={restart}
               className="h-11 rounded-lg bg-[var(--accent)] px-6 font-medium text-black transition-opacity hover:opacity-90"

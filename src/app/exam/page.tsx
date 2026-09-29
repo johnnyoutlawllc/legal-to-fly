@@ -14,14 +14,16 @@ import {
   formatClock,
   prepare,
 } from "@/lib/session";
-import { recordAnswer, recordExam } from "@/lib/mastery";
+import { recordAnswer } from "@/lib/mastery";
 import { claimNewBadges, type BadgeDef } from "@/lib/badges";
 import { NewBadges } from "@/components/Badges";
-import { today } from "@/lib/srs";
+import { useAuth } from "@/lib/auth";
+import { saveTestAttempt, syncTestAttempts } from "@/lib/test-attempts";
 
 type Phase = "loading" | "ready" | "running" | "done" | "error";
 
 export default function ExamPage() {
+  const { user } = useAuth();
   const [phase, setPhase] = useState<Phase>("loading");
   const [error, setError] = useState<string | null>(null);
   const [pool, setPool] = useState<Question[]>([]);
@@ -31,8 +33,11 @@ export default function ExamPage() {
   const [remaining, setRemaining] = useState(EXAM_SECONDS);
   const [flagged, setFlagged] = useState<Set<string>>(new Set());
   const [newBadges, setNewBadges] = useState<BadgeDef[]>([]);
+  const [saveStatus, setSaveStatus] = useState("");
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
   const graded = useRef(false);
+  const attemptId = useRef<string | null>(null);
+  const syncedUser = useRef<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -62,6 +67,9 @@ export default function ExamPage() {
   }, []);
 
   const start = useCallback(() => {
+    attemptId.current = crypto.randomUUID();
+    syncedUser.current = null;
+    setSaveStatus("");
     setQuestions(buildSession(pool, EXAM_QUESTION_COUNT));
     setAnswers({});
     setFlagged(new Set());
@@ -122,9 +130,40 @@ export default function ExamPage() {
       const ok = !!picked && !!q.choices.find((c) => c.id === picked)?.is_correct;
       recordAnswer(q.slug, ok);
     }
-    recordExam(scored.pct, today());
+    const missed = new Map<string, number>();
+    for (const q of questions) {
+      const picked = answers[q.id];
+      if (!picked || !q.choices.find((c) => c.id === picked)?.is_correct) {
+        missed.set(q.acs_element_code, (missed.get(q.acs_element_code) ?? 0) + 1);
+      }
+    }
+    try {
+      saveTestAttempt({
+        id: attemptId.current ?? crypto.randomUUID(),
+        kind: "mock",
+        completedAt: new Date().toISOString(),
+        area: null,
+        correct: scored.correct,
+        total: questions.length,
+        pct: scored.pct,
+        byArea: scored.byArea,
+        missedCodes: [...missed].map(([code, count]) => ({ code, count })),
+        elapsedSeconds: EXAM_SECONDS - remaining,
+      });
+      queueMicrotask(() => setSaveStatus("Saved in this browser"));
+    } catch {
+      queueMicrotask(() => setSaveStatus("Could not save this result in your browser"));
+    }
     setNewBadges(claimNewBadges(pool));
-  }, [phase, questions, answers, scored.pct, pool]);
+  }, [phase, questions, answers, scored, pool, remaining]);
+
+  useEffect(() => {
+    if (phase !== "done" || !user || !saveStatus.startsWith("Saved") || syncedUser.current === user.id) return;
+    syncedUser.current = user.id;
+    void syncTestAttempts(user.id)
+      .then(() => setSaveStatus("Saved to your account"))
+      .catch(() => setSaveStatus("Saved in this browser; account sync pending"));
+  }, [phase, user, saveStatus]);
 
   const missedCodes = useMemo(() => {
     const codes: Record<string, number> = {};
@@ -198,6 +237,7 @@ export default function ExamPage() {
             {scored.correct} of {questions.length} correct. The real exam needs{" "}
             {PASS_PERCENT}%.
           </p>
+          <p className="mt-3 text-sm text-[var(--muted)]">{saveStatus}</p>
 
           <NewBadges badges={newBadges} />
 
@@ -255,6 +295,12 @@ export default function ExamPage() {
           )}
 
           <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              href="/results"
+              className="inline-flex h-11 items-center rounded-lg border border-[var(--border)] px-6 font-medium transition-colors hover:bg-[var(--surface-2)]"
+            >
+              View past results
+            </Link>
             <button
               onClick={start}
               className="h-11 rounded-lg bg-[var(--accent)] px-6 font-medium text-black transition-opacity hover:opacity-90"
