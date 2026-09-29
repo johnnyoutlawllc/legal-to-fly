@@ -158,6 +158,12 @@ export default function Home() {
               Read the ground school
             </Link>
             <Link
+              href="/acs"
+              className="inline-flex h-12 items-center justify-center rounded-lg border border-[var(--border)] px-6 font-medium transition-colors hover:bg-[var(--surface)]"
+            >
+              FAA ACS library
+            </Link>
+            <Link
               href="#path"
               className="inline-flex h-12 items-center justify-center rounded-lg border border-[var(--border)] px-6 font-medium transition-colors hover:bg-[var(--surface)]"
             >

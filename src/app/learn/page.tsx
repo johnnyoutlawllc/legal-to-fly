@@ -43,6 +43,13 @@ export default function LearnPage() {
           rules it comes from, and ends by sending you into the questions for
           that area.
         </p>
+        <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
+          Need the official standard? Browse the{" "}
+          <Link href="/acs" className="text-[var(--accent)] underline underline-offset-4">
+            FAA ACS library
+          </Link>
+          , including the Remote Pilot ACS used by this course.
+        </p>
         <p className="mt-3 text-sm text-[var(--muted)]">
           {done} of {LESSONS.length} read
         </p>
