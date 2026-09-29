@@ -1,5 +1,9 @@
 import { areaFromElement, shuffle, type Question } from "@/lib/types";
-import { EXAM_FIGURE_QUESTIONS } from "@/content/exam-figure-questions";
+import {
+  EXAM_CALCULATION_QUESTIONS,
+  EXAM_FIGURE_QUESTIONS,
+  EXAM_SCENARIO_QUESTIONS,
+} from "@/content/exam-figure-questions";
 
 export const AREA_TITLES: Record<string, string> = {
   I: "Regulations",
@@ -52,11 +56,15 @@ export function buildSession(all: Question[], size: number): Question[] {
   return shuffle(picked).slice(0, size);
 }
 
-/** Every mock now covers actual FAA figures and calculations. Fill the other
- *  slots to the target ACS area mix without relying on a random figure draw. */
+/** Vary applied questions between attempts while retaining charts, calculations,
+ *  scenarios, and the published ACS area mix on every 60-question mock. */
 export function buildExamSession(all: Question[]): Question[] {
   const target: Record<string, number> = { I: 12, II: 12, III: 8, IV: 5, V: 23 };
-  const selected = [...EXAM_FIGURE_QUESTIONS];
+  const selected = [
+    ...shuffle(EXAM_FIGURE_QUESTIONS).slice(0, 5),
+    ...shuffle(EXAM_CALCULATION_QUESTIONS).slice(0, 3),
+    ...shuffle(EXAM_SCENARIO_QUESTIONS).slice(0, 2),
+  ];
   const chosen = new Set(selected.map((question) => question.id));
   const available = shuffle(all.filter((question) => !chosen.has(question.id)));
   for (const question of selected) target[areaFromElement(question.acs_element_code)] -= 1;
