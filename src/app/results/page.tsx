@@ -1,18 +1,57 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { AuthButton } from "@/components/AuthButton";
 import { useAuth } from "@/lib/auth";
 import { loadExams } from "@/lib/mastery";
 import { AREA_TITLES, PASS_PERCENT, formatClock } from "@/lib/session";
-import { loadTestAttempts, syncTestAttempts, type TestAttempt } from "@/lib/test-attempts";
+import { loadTestAttempts, saveTestAttempt, syncTestAttempts, type TestAttempt } from "@/lib/test-attempts";
 
 export default function ResultsPage() {
   const { user, loading } = useAuth();
   const [attempts, setAttempts] = useState<TestAttempt[]>([]);
   const [older, setOlder] = useState<{ date: string; pct: number }[]>([]);
   const [syncError, setSyncError] = useState(false);
+  const [entryMessage, setEntryMessage] = useState("");
+
+  function addEarlierResult(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const fields = new FormData(form);
+    const kind = fields.get("kind") === "mock" ? "mock" : "practice";
+    const area = fields.get("area");
+    const correct = Number(fields.get("correct"));
+    const total = Number(fields.get("total"));
+    const date = String(fields.get("date") ?? "");
+    if (!Number.isInteger(correct) || !Number.isInteger(total) || total <= 0 || correct < 0 || correct > total || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      setEntryMessage("Enter a valid date and a correct count between 0 and the question count.");
+      return;
+    }
+    try {
+      setAttempts(saveTestAttempt({
+        id: crypto.randomUUID(),
+        kind,
+        completedAt: new Date(`${date}T12:00:00`).toISOString(),
+        area: kind === "practice" && typeof area === "string" && area in AREA_TITLES ? area : null,
+        correct,
+        total,
+        pct: Math.round((correct / total) * 100),
+        byArea: {},
+        missedCodes: [],
+        elapsedSeconds: null,
+      }));
+      setEntryMessage("Result saved.");
+      form.reset();
+      if (user) {
+        void syncTestAttempts(user.id)
+          .then(setAttempts)
+          .catch(() => setSyncError(true));
+      }
+    } catch {
+      setEntryMessage("Could not save this result in your browser.");
+    }
+  }
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -62,6 +101,40 @@ export default function ResultsPage() {
           <Link href="/exam" className="rounded-lg border border-[var(--border)] px-5 py-3 font-medium hover:bg-[var(--surface)]">Take a mock exam</Link>
         </div>
 
+        <details className="mt-8 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
+          <summary className="cursor-pointer font-medium text-[var(--accent)]">Add a result from a test already in progress</summary>
+          <p className="mt-3 text-sm leading-6 text-[var(--muted)]">For tests opened before automatic saving was added, enter the score shown on the result screen. Only the date and score can be recovered this way.</p>
+          <form onSubmit={addEarlierResult} className="mt-5 grid gap-4 sm:grid-cols-2">
+            <label className="text-sm">Test type
+              <select name="kind" className="mt-1 block w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] p-3">
+                <option value="practice">Practice session</option>
+                <option value="mock">Mock exam</option>
+              </select>
+            </label>
+            <label className="text-sm">Area, if applicable
+              <select name="area" className="mt-1 block w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] p-3">
+                <option value="">Mixed or not applicable</option>
+                {Object.entries(AREA_TITLES).map(([code, title]) => <option key={code} value={code}>{title}</option>)}
+              </select>
+            </label>
+            <label className="text-sm">Date
+              <input name="date" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} className="mt-1 block w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] p-3" />
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="text-sm">Correct
+                <input name="correct" type="number" required min="0" className="mt-1 block w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] p-3" />
+              </label>
+              <label className="text-sm">Questions
+                <input name="total" type="number" required min="1" defaultValue="20" className="mt-1 block w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] p-3" />
+              </label>
+            </div>
+            <div className="sm:col-span-2">
+              <button type="submit" className="rounded-lg bg-[var(--accent)] px-5 py-3 font-medium text-black">Save result</button>
+              {entryMessage && <p role="status" className="mt-2 text-sm text-[var(--muted)]">{entryMessage}</p>}
+            </div>
+          </form>
+        </details>
+
         {attempts.length === 0 && !loading ? (
           <p className="mt-10 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 text-[var(--muted)]">
             No completed tests saved yet. Finish a practice session or mock exam to start your history.
@@ -108,6 +181,10 @@ function AttemptCard({ attempt }: { attempt: TestAttempt }) {
       {attempt.elapsedSeconds !== null && <p className="mt-3 text-sm text-[var(--muted)]">Time used: {formatClock(attempt.elapsedSeconds)}</p>}
       <details className="mt-4 border-t border-[var(--border)] pt-4">
         <summary className="cursor-pointer font-medium text-[var(--accent)]">Area breakdown and missed ACS codes</summary>
+        {Object.keys(attempt.byArea).length === 0 ? (
+          <p className="mt-3 text-sm text-[var(--muted)]">Detailed review was not recorded for this result.</p>
+        ) : (
+          <>
         <ul className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
           {Object.entries(attempt.byArea).map(([area, score]) => (
             <li key={area} className="text-[var(--muted)]">{AREA_TITLES[area] ?? area}: {score.right}/{score.total}</li>
@@ -118,6 +195,8 @@ function AttemptCard({ attempt }: { attempt: TestAttempt }) {
             ? `Missed: ${attempt.missedCodes.map(({ code, count }) => `${code}${count > 1 ? ` ×${count}` : ""}`).join(", ")}`
             : "No missed ACS codes."}
         </p>
+          </>
+        )}
       </details>
     </li>
   );
