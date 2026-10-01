@@ -50,7 +50,7 @@ const DEFAULT_PREFS: Prefs = {
   style: "sectional",
   hidden: [],
   windLimitMph: 20,
-  overlays: { weather: true, grid: true, airspace: true, tfr: true, sua: true, airports: true },
+  overlays: { weather: false, grid: true, airspace: true, tfr: true, sua: true, airports: true },
 };
 
 const PREFS_KEY = "ltf.flycheck.prefs";
