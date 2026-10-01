@@ -157,20 +157,18 @@ export default function FlyMap({ lat, lng, overlays, airports, style, visible, o
       if (cancelled || !el.current || map.current) return;
       const lf = (mod.default ?? mod) as typeof Leaflet;
       L.current = lf;
-      // The wheel scrolls the page until the user clicks into the map, so a
-      // long results page never gets trapped zooming the chart.
+      // The wheel zooms whenever the pointer is over the map. minZoom keeps a
+      // stray scroll from zooming out to an empty grey continent.
       const m = lf.map(el.current, {
         zoomControl: false,
         attributionControl: true,
-        minZoom: 5,
+        minZoom: 7,
         maxZoom: 18,
-        scrollWheelZoom: false,
+        scrollWheelZoom: true,
       });
       lf.control.zoom({ position: "bottomright" }).addTo(m);
       m.setView([lat, lng], 12);
-      m.on("mouseout", () => m.scrollWheelZoom.disable());
       m.on("click", (e: Leaflet.LeafletMouseEvent) => {
-        m.scrollWheelZoom.enable();
         const btn = document.createElement("button");
         btn.className = "fc-popbtn";
         btn.textContent = "Check this spot →";

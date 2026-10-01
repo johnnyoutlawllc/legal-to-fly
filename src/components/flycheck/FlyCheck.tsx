@@ -50,7 +50,7 @@ const DEFAULT_PREFS: Prefs = {
   style: "sectional",
   hidden: [],
   windLimitMph: 20,
-  overlays: { weather: false, grid: true, airspace: true, tfr: true, sua: true, airports: true },
+  overlays: { weather: true, grid: true, airspace: true, tfr: true, sua: true, airports: true },
 };
 
 const PREFS_KEY = "ltf.flycheck.prefs";
@@ -722,7 +722,7 @@ export function FlyCheck({ initial, hero = true }: { initial?: GeoResult; hero?:
                     </div>
                   )}
                   <p className="rounded-lg bg-black/70 px-2.5 py-1 text-[11px] text-[var(--muted)] backdrop-blur-md">
-                    Click the map to check another spot · click in to zoom with the wheel
+                    Click the map to check another spot · scroll to zoom
                   </p>
                 </div>
               </section>
