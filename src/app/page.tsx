@@ -118,13 +118,22 @@ export default function Home() {
             </span>
           </span>
           <span className="flex items-center gap-3">
-            <Link href="/results" className="text-sm text-[var(--muted)] hover:text-[var(--text)]">
+            <Link
+              href="/can-i-fly-here"
+              className="group inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-[var(--accent)]/40 bg-[var(--accent)]/10 px-3 py-1.5 text-sm font-medium transition-colors hover:border-[var(--accent)]"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] shadow-[0_0_8px_var(--accent)]" />
+              Can I fly here?
+            </Link>
+            <Link href="/results" className="hidden text-sm text-[var(--muted)] hover:text-[var(--text)] sm:inline">
               Results
             </Link>
-            <AuthButton />
+            <span className="hidden sm:inline-flex">
+              <AuthButton />
+            </span>
             <Link
               href="/drill"
-              className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-black transition-opacity hover:opacity-90"
+              className="hidden rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-black transition-opacity hover:opacity-90 sm:inline-block"
             >
               Today&apos;s drill
             </Link>
@@ -153,6 +162,12 @@ export default function Home() {
               className="inline-flex h-12 items-center justify-center rounded-lg bg-[var(--accent)] px-6 font-medium text-black transition-opacity hover:opacity-90"
             >
               Start today&apos;s drill
+            </Link>
+            <Link
+              href="/can-i-fly-here"
+              className="inline-flex h-12 items-center justify-center rounded-lg border border-[var(--accent)]/50 px-6 font-medium transition-colors hover:bg-[var(--accent)]/10"
+            >
+              Can I fly here?
             </Link>
             <Link
               href="/learn"
