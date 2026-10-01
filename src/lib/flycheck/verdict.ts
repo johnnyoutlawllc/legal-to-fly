@@ -8,6 +8,12 @@ import type { Airport, AirspaceData, Finding, Level, RestrictionsData } from "./
 const LAANC = { href: "https://www.faa.gov/uas/getting_started/laanc", label: "Request LAANC" };
 const DRONEZONE = { href: "https://faadronezone-access.faa.gov/", label: "FAA DroneZone" };
 
+/** The FAA's own page for one NOTAM: "6/6215" lives at detail_6_6215. */
+const tfrLink = (id: string) => ({
+  href: `https://tfr.faa.gov/tfr3/?page=detail_${id.replace("/", "_")}`,
+  label: `Read TFR ${id}`,
+});
+
 const RANK: Record<Level, number> = { info: 0, go: 1, caution: 2, stop: 3 };
 
 const clsName = (c: string) =>
@@ -38,7 +44,7 @@ export function airspaceVerdict(
         detail: `${t.title}. A TFR can ban drones outright for its active hours. Read the NOTAM for the times before planning anything here.`,
         cite: "14 CFR 91.137-91.145, 99.7",
         learn: "airspace",
-        link: { href: "https://tfr.faa.gov/", label: `TFR ${t.id}` },
+        link: tfrLink(t.id),
       });
   }
   if (restrictions?.park)
@@ -144,7 +150,7 @@ export function airspaceVerdict(
       title: `TFR ${t.distanceNm} NM away`,
       detail: `${t.title}. Not over this point, but close enough that a drifting flight or a moved event could put you inside it.`,
       cite: "14 CFR 91.137-91.145, 99.7",
-      link: { href: "https://tfr.faa.gov/", label: `TFR ${t.id}` },
+      link: tfrLink(t.id),
     });
 
   // ── Landing areas close in ──

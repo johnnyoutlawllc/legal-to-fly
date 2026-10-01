@@ -100,9 +100,14 @@ interface Props {
   style: MapStyle;
   visible: Record<OverlayKey, boolean>;
   onPick: (lat: number, lng: number) => void;
+  /** Airport ident to light up (hovered in the list). */
+  highlight?: string | null;
+  onHoverAirport?: (ident: string | null) => void;
+  /** Fly to a point; key changes on every request so repeats still move. */
+  focus?: { lat: number; lng: number; key: number } | null;
 }
 
-export default function FlyMap({ lat, lng, overlays, airports, style, visible, onPick }: Props) {
+export default function FlyMap({ lat, lng, overlays, airports, style, visible, onPick, highlight, onHoverAirport, focus }: Props) {
   const el = useRef<HTMLDivElement>(null);
   const L = useRef<typeof Leaflet | null>(null);
   const map = useRef<Leaflet.Map | null>(null);
@@ -110,9 +115,12 @@ export default function FlyMap({ lat, lng, overlays, airports, style, visible, o
   const groups = useRef<Partial<Record<OverlayKey, Leaflet.LayerGroup>>>({});
   const pin = useRef<Leaflet.Marker | null>(null);
   const pickRef = useRef(onPick);
+  const hoverRef = useRef(onHoverAirport);
+  const aptMarkers = useRef(new Map<string, Leaflet.Marker>());
   useEffect(() => {
     pickRef.current = onPick;
-  }, [onPick]);
+    hoverRef.current = onHoverAirport;
+  }, [onPick, onHoverAirport]);
 
   // Create the map once.
   useEffect(() => {
@@ -223,9 +231,10 @@ export default function FlyMap({ lat, lng, overlays, airports, style, visible, o
             layer.bindTooltip(`<b>TFR</b><br>${f.properties?.TITLE ?? ""}`, { sticky: true, className: "fc-tip" }),
         }),
       ]);
+      aptMarkers.current.clear();
       gs.airports = lf.layerGroup(
-        airports.map((a) =>
-          lf
+        airports.map((a) => {
+          const mk = lf
             .marker([a.lat, a.lng], {
               icon: lf.divIcon({
                 className: "",
@@ -236,8 +245,12 @@ export default function FlyMap({ lat, lng, overlays, airports, style, visible, o
             })
             .bindTooltip(`<b>${a.ident}</b> ${a.name}<br>${a.typeLabel}${a.privateUse ? " (private)" : ""} · ${a.distanceNm} NM`, {
               className: "fc-tip",
-            }),
-        ),
+            })
+            .on("mouseover", () => hoverRef.current?.(a.ident))
+            .on("mouseout", () => hoverRef.current?.(null));
+          aptMarkers.current.set(a.ident, mk);
+          return mk;
+        }),
       );
 
       (Object.keys(gs) as OverlayKey[]).forEach((k) => {
@@ -265,6 +278,21 @@ export default function FlyMap({ lat, lng, overlays, airports, style, visible, o
     node?.addEventListener("fc-ready", draw);
     return () => node?.removeEventListener("fc-ready", draw);
   }, [lat, lng, overlays, airports, style, visible]);
+
+  // Light up the hovered airport without redrawing anything else.
+  useEffect(() => {
+    for (const [id, mk] of aptMarkers.current) {
+      const on = id === highlight;
+      mk.getElement()?.firstElementChild?.classList.toggle("fc-apt-hl", on);
+      mk.setZIndexOffset(on ? 900 : 0);
+      if (on) mk.openTooltip();
+      else mk.closeTooltip();
+    }
+  }, [highlight, airports, visible]);
+
+  useEffect(() => {
+    if (focus && map.current) map.current.flyTo([focus.lat, focus.lng], Math.max(map.current.getZoom(), 13), { duration: 0.8 });
+  }, [focus]);
 
   // Recenter only when the point moves, so toggling layers keeps the user's zoom.
   useEffect(() => {

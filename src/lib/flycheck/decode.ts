@@ -40,8 +40,32 @@ export interface Token {
   kind: "id" | "time" | "wind" | "vis" | "wx" | "cloud" | "temp" | "alt" | "change" | "rmk" | "other";
 }
 
+function decodeRemark(t: string): string {
+  let m: RegExpExecArray | null;
+  if (t === "AO1") return "automated station, no precipitation sensor";
+  if (t === "AO2") return "automated station with a precipitation sensor";
+  if ((m = /^SLP(\d{3})$/.exec(t))) {
+    const v = Number(m[1]) / 10;
+    return `sea level pressure ${(v < 50 ? 1000 + v : 900 + v).toFixed(1)} hPa`;
+  }
+  if ((m = /^T([01])(\d{3})([01])(\d{3})$/.exec(t))) {
+    const c = (s: string, v: string) => ((s === "1" ? -1 : 1) * Number(v)) / 10;
+    return `exact temperature ${c(m[1], m[2])}°C, dew point ${c(m[3], m[4])}°C`;
+  }
+  if ((m = /^P(\d{4})$/.exec(t))) return `${(Number(m[1]) / 100).toFixed(2)} in of precipitation in the last hour`;
+  if (t === "LTG") return "lightning observed";
+  if (t === "DSNT") return "distant: 10 to 30 miles away";
+  if (t === "VCY" || t === "VC") return "in the vicinity";
+  if (t === "OHD") return "overhead";
+  if (/^TS[BE]\d/.test(t)) return "thunderstorm began (B) / ended (E) at these minutes";
+  if ((m = /^PK$/.exec(t))) return "peak wind follows";
+  if (t === "PRESFR") return "pressure falling rapidly";
+  if (t === "PRESRR") return "pressure rising rapidly";
+  return "";
+}
+
 function decodeGroup(t: string, i: number, ctx: { remarks: boolean; taf: boolean }): Token {
-  if (ctx.remarks) return { t, m: "", kind: "rmk" };
+  if (ctx.remarks) return { t, m: decodeRemark(t), kind: "rmk" };
   if (t === "RMK") { ctx.remarks = true; return { t, m: "remarks follow (station-specific notes)", kind: "rmk" }; }
   if (t === "METAR" || t === "SPECI" || t === "TAF")
     return { t, m: t === "SPECI" ? "special report: conditions changed fast" : t === "TAF" ? "terminal aerodrome forecast" : "routine hourly observation", kind: "id" };

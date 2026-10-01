@@ -5,10 +5,11 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import * as SunCalc from "suncalc";
 import type { FlyReport, Finding, GeoResult, Level, Metar } from "@/lib/flycheck/types";
-import { annotate, CATEGORY, ktToMph, wxPlain, type Token } from "@/lib/flycheck/decode";
+import { CATEGORY, ktToMph, wxPlain } from "@/lib/flycheck/decode";
 import { compass } from "@/lib/flycheck/geo";
 import { ForecastStrip, KpGauge, LEVEL_COLOR, SunArc, VerdictRing, WindDial } from "./Widgets";
 import { OVERLAYS, STYLES, type MapStyle, type OverlayKey } from "./FlyMap";
+import { Decoder } from "./Decoder";
 
 const FlyMap = dynamic(() => import("./FlyMap"), {
   ssr: false,
@@ -243,60 +244,6 @@ function FindingRow({ f, pilot }: { f: Finding; pilot: boolean }) {
   );
 }
 
-const KIND_COLOR: Record<Token["kind"], string> = {
-  id: "#9a9a9a",
-  time: "#9a9a9a",
-  wind: "#60a5fa",
-  vis: "#34d399",
-  wx: "#fbbf24",
-  cloud: "#e879f9",
-  temp: "#f97316",
-  alt: "#a3a3a3",
-  change: "#ff6b35",
-  rmk: "#525252",
-  other: "#d4d4d4",
-};
-
-function RawDecoded({ raw }: { raw: string }) {
-  const tokens = annotate(raw);
-  const [hover, setHover] = useState<number | null>(null);
-  return (
-    <div>
-      <div className="flex flex-wrap gap-x-1.5 gap-y-1 rounded-xl border border-white/[0.06] bg-black/40 p-3 font-mono text-[13px] leading-6">
-        {tokens.map((t, i) => (
-          <span
-            key={i}
-            onMouseEnter={() => setHover(i)}
-            onMouseLeave={() => setHover(null)}
-            className="cursor-help rounded px-0.5 transition-colors"
-            style={{ color: KIND_COLOR[t.kind], background: hover === i ? "rgba(255,255,255,0.08)" : undefined }}
-          >
-            {t.t}
-          </span>
-        ))}
-      </div>
-      <ul className="mt-3 grid gap-1.5 text-sm sm:grid-cols-2">
-        {tokens
-          .map((t, i) => ({ ...t, i }))
-          .filter((t) => t.m && t.kind !== "rmk")
-          .map((t) => (
-            <li
-              key={t.i}
-              onMouseEnter={() => setHover(t.i)}
-              onMouseLeave={() => setHover(null)}
-              className={`flex gap-2 rounded-lg px-2 py-1 transition-colors ${hover === t.i ? "bg-white/[0.06]" : ""}`}
-            >
-              <code className="shrink-0 font-mono text-xs" style={{ color: KIND_COLOR[t.kind] }}>
-                {t.t}
-              </code>
-              <span className="text-[var(--muted)]">{t.m}</span>
-            </li>
-          ))}
-      </ul>
-    </div>
-  );
-}
-
 function Stat({ label, value, sub, color }: { label: string; value: React.ReactNode; sub?: React.ReactNode; color?: string }) {
   return (
     <div className="rounded-xl border border-white/[0.06] bg-black/20 p-3.5">
@@ -333,6 +280,19 @@ export function FlyCheck() {
   const [err, setErr] = useState("");
   const [line, setLine] = useState(0);
   const [now, setNow] = useState(() => new Date());
+  // Airport hover is shared by the list and the map; "from" says which side
+  // started it so only the other side scrolls or pans.
+  const [hoverApt, setHoverApt] = useState<{ id: string; from: "map" | "list" } | null>(null);
+  const [focusApt, setFocusApt] = useState<{ lat: number; lng: number; key: number } | null>(null);
+  const onMapHover = useCallback((id: string | null) => setHoverApt(id ? { id, from: "map" } : null), []);
+
+  useEffect(() => {
+    if (hoverApt?.from !== "map") return;
+    const row = document.querySelector<HTMLElement>(`[data-apt="${CSS.escape(hoverApt.id)}"]`);
+    const list = row?.parentElement;
+    if (row && list && list.scrollHeight > list.clientHeight)
+      list.scrollTo({ top: row.offsetTop - list.clientHeight / 2 + row.clientHeight / 2, behavior: "smooth" });
+  }, [hoverApt]);
 
   // localStorage only exists in the browser, so prefs load after hydration.
   // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -694,7 +654,10 @@ export function FlyCheck() {
           <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-12 [&>*]:min-w-0">
             {/* Map */}
             {show("map") && (
-              <section className="fc-rise relative overflow-hidden rounded-2xl border border-white/[0.07] lg:col-span-12" style={{ animationDelay: "60ms" }}>
+              <section
+                className={`fc-rise relative overflow-hidden rounded-2xl border border-white/[0.07] ${show("airports") ? "lg:col-span-8" : "lg:col-span-12"}`}
+                style={{ animationDelay: "60ms" }}
+              >
                 <div className="h-[460px] sm:h-[540px]">
                   <FlyMap
                     lat={report.point.lat}
@@ -704,6 +667,9 @@ export function FlyCheck() {
                     style={prefs.style}
                     visible={prefs.overlays}
                     onPick={pick}
+                    highlight={hoverApt?.id ?? null}
+                    onHoverAirport={onMapHover}
+                    focus={focusApt}
                   />
                 </div>
                 <div className="pointer-events-none absolute inset-x-3 top-3 z-[400] flex flex-wrap items-start justify-between gap-2">
@@ -739,6 +705,63 @@ export function FlyCheck() {
                   Click the map to check another spot · click in to zoom with the wheel
                 </p>
               </section>
+            )}
+
+            {/* Airports, beside the map */}
+            {show("airports") && (
+              <Card
+                id="airports"
+                eyebrow="Within 5 NM"
+                title="Airports & heliports"
+                learn={{ slug: "airport-operations", label: "Airport ops" }}
+                className="flex flex-col lg:col-span-4 lg:h-[540px]"
+                delay={100}
+              >
+                {!report.airports.ok ? (
+                  <Unavailable what="The FAA airport list" />
+                ) : !report.airports.data?.length ? (
+                  <p className="text-sm text-[var(--muted)]">No airports, heliports or seaplane bases within 5 NM.</p>
+                ) : (
+                  <ul className="relative -mx-2 min-h-0 flex-1 space-y-1 overflow-y-auto px-2">
+                    {report.airports.data.map((a) => {
+                      const lit = hoverApt?.id === a.ident;
+                      const heli = a.type === "HP";
+                      return (
+                        <li
+                          key={a.ident}
+                          data-apt={a.ident}
+                          onMouseEnter={() => setHoverApt({ id: a.ident, from: "list" })}
+                          onMouseLeave={() => setHoverApt(null)}
+                          onClick={() => setFocusApt({ lat: a.lat, lng: a.lng, key: Date.now() })}
+                          className={`flex cursor-pointer items-center gap-3 rounded-xl border px-2.5 py-2.5 transition-all duration-150 ${
+                            lit
+                              ? "border-[var(--accent)]/60 bg-[var(--accent)]/10 shadow-[0_0_24px_-6px_rgba(255,107,53,0.6)]"
+                              : "border-transparent hover:bg-white/[0.03]"
+                          }`}
+                        >
+                          <span
+                            className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg text-xs font-bold transition-transform ${lit ? "scale-110" : ""} ${heli ? "bg-fuchsia-500/15 text-fuchsia-300" : "bg-sky-500/15 text-sky-300"}`}
+                          >
+                            {heli ? "H" : a.type === "SP" ? "S" : "✈"}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p className="line-clamp-2 text-sm font-medium leading-5">{a.name}</p>
+                            <p className="text-xs text-[var(--muted)]">
+                              {a.typeLabel}
+                              {a.privateUse ? " · private" : ""} · {a.ident}
+                            </p>
+                          </div>
+                          <span className="text-right text-sm tabular-nums">
+                            {a.distanceNm} NM
+                            <span className="block text-xs text-[var(--muted)]">{compass(a.bearing)}</span>
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+                <p className="mt-3 text-[11px] text-[var(--muted)]">Hover to find it on the map · click to fly there</p>
+              </Card>
             )}
 
             {/* Airspace */}
@@ -879,12 +902,9 @@ export function FlyCheck() {
                         </ul>
                       </div>
                     </div>
-                    {pilot && (
-                      <div className="mt-6">
-                        <p className="mb-2 text-xs uppercase tracking-[0.14em] text-[var(--muted)]">Raw METAR, decoded · hover a group</p>
-                        <RawDecoded raw={m.raw} />
-                      </div>
-                    )}
+                    <div className="mt-6">
+                      <Decoder raw={m.raw} title={`METAR ${m.station.id}, decoded · hover any group`} />
+                    </div>
                   </>
                 )}
               </Card>
@@ -948,12 +968,9 @@ export function FlyCheck() {
                         );
                       })}
                     </ol>
-                    {pilot && (
-                      <div className="mt-5">
-                        <p className="mb-2 text-xs uppercase tracking-[0.14em] text-[var(--muted)]">Raw TAF, decoded</p>
-                        <RawDecoded raw={report.taf.data.raw} />
-                      </div>
-                    )}
+                    <div className="mt-5">
+                      <Decoder raw={report.taf.data.raw} title={`TAF ${report.taf.data.station.id}, decoded · one band per change`} />
+                    </div>
                   </div>
                 )}
               </Card>
@@ -961,7 +978,7 @@ export function FlyCheck() {
 
             {/* Daylight */}
             {show("daylight") && sun && (
-              <Card id="daylight" eyebrow="Daylight" title={sun.light === "day" ? "Daytime" : sun.light === "twilight" ? "Civil twilight" : "Night"} className="lg:col-span-5" delay={280}>
+              <Card id="daylight" eyebrow="Daylight" title={sun.light === "day" ? "Daytime" : sun.light === "twilight" ? "Civil twilight" : "Night"} className="lg:col-span-6" delay={280}>
                 <div className="flex justify-center">
                   <SunArc dawn={sun.dawn} sunrise={sun.sunrise} sunset={sun.sunset} dusk={sun.dusk} now={now} />
                 </div>
@@ -974,41 +991,9 @@ export function FlyCheck() {
               </Card>
             )}
 
-            {/* Airports */}
-            {show("airports") && (
-              <Card id="airports" eyebrow="Within 5 NM" title="Airports & heliports" learn={{ slug: "airport-operations", label: "Airport ops" }} className="lg:col-span-7" delay={320}>
-                {!report.airports.ok ? (
-                  <Unavailable what="The FAA airport list" />
-                ) : !report.airports.data?.length ? (
-                  <p className="text-sm text-[var(--muted)]">No airports, heliports or seaplane bases within 5 NM.</p>
-                ) : (
-                  <ul className="divide-y divide-white/[0.05]">
-                    {report.airports.data.map((a) => (
-                      <li key={a.ident} className="flex items-center gap-3 py-2.5">
-                        <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg text-xs font-bold ${a.type === "HP" ? "bg-fuchsia-500/15 text-fuchsia-300" : "bg-sky-500/15 text-sky-300"}`}>
-                          {a.type === "HP" ? "H" : a.type === "SP" ? "S" : "✈"}
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium">{a.name}</p>
-                          <p className="text-xs text-[var(--muted)]">
-                            {a.typeLabel}
-                            {a.privateUse ? " · private" : ""} · {a.ident}
-                          </p>
-                        </div>
-                        <span className="text-right text-sm tabular-nums">
-                          {a.distanceNm} NM
-                          <span className="block text-xs text-[var(--muted)]">{compass(a.bearing)}</span>
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </Card>
-            )}
-
             {/* Space weather */}
             {show("space") && (
-              <Card id="space" eyebrow="Space weather" title="GPS outlook" className="lg:col-span-5" delay={360}>
+              <Card id="space" eyebrow="Space weather" title="GPS outlook" className="lg:col-span-6" delay={360}>
                 {report.space.data ? (
                   <div className="flex items-end justify-between gap-4">
                     <div>
