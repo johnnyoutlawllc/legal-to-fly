@@ -32,6 +32,22 @@ export function wxPlain(code: string | null | undefined): string {
     .join(", ");
 }
 
+/** Viewer-local rendering of a report's day/hour/minute (UTC). Reports carry
+ *  only a day of month, so the month is whichever puts that day nearest today. */
+function localTime(day: number, hh: string, mm: string): string {
+  const now = new Date();
+  let month = now.getUTCMonth();
+  if (day - now.getUTCDate() > 15) month -= 1;
+  else if (now.getUTCDate() - day > 15) month += 1;
+  const d = new Date(Date.UTC(now.getUTCFullYear(), month, day, Number(hh), Number(mm)));
+  return d.toLocaleString("en-US", {
+    weekday: "short",
+    hour: "numeric",
+    ...(Number(mm) ? { minute: "2-digit" as const } : {}),
+    timeZoneName: "short",
+  });
+}
+
 const z = (s: string) => `${s.slice(0, 2)}:${s.slice(2, 4)}Z`;
 
 export interface Token {
@@ -64,7 +80,10 @@ function decodeRemark(t: string): string {
   return "";
 }
 
-function decodeGroup(t: string, i: number, ctx: { remarks: boolean; taf: boolean }): Token {
+const lt = (ctx: { local?: boolean }, day: string, hh: string, mm: string) =>
+  ctx.local ? ` (${localTime(Number(day), hh, mm)})` : "";
+
+function decodeGroup(t: string, i: number, ctx: { remarks: boolean; taf: boolean; local?: boolean }): Token {
   if (ctx.remarks) return { t, m: decodeRemark(t), kind: "rmk" };
   if (t === "RMK") { ctx.remarks = true; return { t, m: "remarks follow (station-specific notes)", kind: "rmk" }; }
   if (t === "METAR" || t === "SPECI" || t === "TAF")
@@ -74,9 +93,9 @@ function decodeGroup(t: string, i: number, ctx: { remarks: boolean; taf: boolean
   if (t === "COR") return { t, m: "corrected report", kind: "id" };
   if (/^[KPTC][A-Z0-9]{3}$/.test(t) && i <= 2) return { t, m: "station identifier", kind: "id" };
   let m: RegExpExecArray | null;
-  if ((m = /^(\d{2})(\d{4})Z$/.exec(t))) return { t, m: `day ${Number(m[1])} at ${z(m[2])}`, kind: "time" };
+  if ((m = /^(\d{2})(\d{4})Z$/.exec(t))) return { t, m: `day ${Number(m[1])} at ${z(m[2])}${lt(ctx, m[1], m[2].slice(0, 2), m[2].slice(2))}`, kind: "time" };
   if ((m = /^(\d{2})(\d{2})\/(\d{2})(\d{2})$/.exec(t)))
-    return { t, m: `valid from day ${Number(m[1])} ${m[2]}Z to day ${Number(m[3])} ${m[4]}Z`, kind: "time" };
+    return { t, m: `valid from day ${Number(m[1])} ${m[2]}Z${lt(ctx, m[1], m[2], "00")} to day ${Number(m[3])} ${m[4]}Z${lt(ctx, m[3], m[4], "00")}`, kind: "time" };
   if ((m = /^(\d{3}|VRB)(\d{2,3})(?:G(\d{2,3}))?KT$/.exec(t))) {
     const dir = m[1] === "VRB" ? "variable direction" : `from ${Number(m[1])}° true`;
     const spd = Number(m[2]);
@@ -105,7 +124,7 @@ function decodeGroup(t: string, i: number, ctx: { remarks: boolean; taf: boolean
     return { t, m: `temperature ${c(m[1])}°C${m[2] ? `, dew point ${c(m[2])}°C` : ""}`, kind: "temp" };
   }
   if ((m = /^A(\d{4})$/.exec(t))) return { t, m: `altimeter ${m[1].slice(0, 2)}.${m[1].slice(2)} inHg`, kind: "alt" };
-  if ((m = /^FM(\d{2})(\d{4})$/.exec(t))) return { t, m: `from day ${Number(m[1])} at ${z(m[2])}, conditions change to`, kind: "change" };
+  if ((m = /^FM(\d{2})(\d{4})$/.exec(t))) return { t, m: `from day ${Number(m[1])} at ${z(m[2])}${lt(ctx, m[1], m[2].slice(0, 2), m[2].slice(2))}, conditions change to`, kind: "change" };
   if (t === "TEMPO") return { t, m: "temporarily, for under an hour at a time", kind: "change" };
   if (t === "BECMG") return { t, m: "gradually becoming", kind: "change" };
   if ((m = /^PROB(\d{2})$/.exec(t))) return { t, m: `${m[1]}% chance of`, kind: "change" };
@@ -113,8 +132,10 @@ function decodeGroup(t: string, i: number, ctx: { remarks: boolean; taf: boolean
   return { t, m: "", kind: "other" };
 }
 
-export function annotate(raw: string): Token[] {
-  const ctx = { remarks: false, taf: raw.startsWith("TAF") };
+/** `local` adds the viewer's local time after each Z time; leave it off for
+ *  server rendering so the markup matches what the browser hydrates. */
+export function annotate(raw: string, local = false): Token[] {
+  const ctx = { remarks: false, taf: raw.startsWith("TAF"), local };
   return raw.trim().split(/\s+/).map((t, i) => decodeGroup(t, i, ctx));
 }
 

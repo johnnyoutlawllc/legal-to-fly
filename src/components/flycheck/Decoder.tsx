@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { annotate, type Token } from "@/lib/flycheck/decode";
 
 /** The raw report, color coded by section, with the plain-English meaning of
@@ -38,7 +38,9 @@ function segments(tokens: Indexed[], taf: boolean): Indexed[][] {
 }
 
 export function Decoder({ raw, title }: { raw: string; title: string }) {
-  const tokens = useMemo(() => annotate(raw).map((t, i) => ({ ...t, i })), [raw]);
+  const [local, setLocal] = useState(false);
+  useEffect(() => setLocal(true), []);
+  const tokens = useMemo(() => annotate(raw, local).map((t, i) => ({ ...t, i })), [raw, local]);
   const taf = raw.trim().startsWith("TAF");
   const segs = useMemo(() => segments(tokens, taf), [tokens, taf]);
   const [hover, setHover] = useState<number | null>(null);
