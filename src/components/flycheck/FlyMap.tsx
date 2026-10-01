@@ -15,6 +15,13 @@ export type OverlayKey = "grid" | "airspace" | "tfr" | "sua" | "airports";
 
 const FAA_TILES = "https://tiles.arcgis.com/tiles/ssFJjBXIUyZDrSYZ/arcgis/rest/services";
 
+// CARTO basemaps need a key now; without one every tile is an "API KEY
+// REQUIRED" watermark. The key rides in the tile URL, so it is public by
+// design (NEXT_PUBLIC_). Lock it to our domains in the CARTO dashboard.
+const CARTO_KEY = process.env.NEXT_PUBLIC_CARTO_KEY;
+const carto = (style: string) =>
+  `https://basemaps.cartocdn.com/rastertiles/${style}/{z}/{x}/{y}{r}.png?key=${CARTO_KEY}`;
+
 export const STYLES: Record<MapStyle, { label: string; url: string; attr: string; maxNative: number }> = {
   sectional: {
     label: "Sectional",
@@ -34,18 +41,24 @@ export const STYLES: Record<MapStyle, { label: string; url: string; attr: string
     attr: "Imagery: Esri, Maxar, Earthstar Geographics",
     maxNative: 19,
   },
-  dark: {
-    label: "Dark",
-    url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-    attr: "© OpenStreetMap contributors © CARTO",
-    maxNative: 19,
-  },
-  streets: {
-    label: "Streets",
-    url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-    attr: "© OpenStreetMap contributors © CARTO",
-    maxNative: 19,
-  },
+  // Without a CARTO key, fall back to Esri's keyless gray and street maps
+  // rather than ship a watermark.
+  dark: CARTO_KEY
+    ? { label: "Dark", url: carto("dark_all"), attr: "© OpenStreetMap contributors © CARTO", maxNative: 19 }
+    : {
+        label: "Dark",
+        url: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+        attr: "Esri, HERE, Garmin, © OpenStreetMap contributors",
+        maxNative: 16,
+      },
+  streets: CARTO_KEY
+    ? { label: "Streets", url: carto("voyager"), attr: "© OpenStreetMap contributors © CARTO", maxNative: 19 }
+    : {
+        label: "Streets",
+        url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+        attr: "Esri, HERE, Garmin, © OpenStreetMap contributors",
+        maxNative: 19,
+      },
 };
 
 export const OVERLAYS: Record<OverlayKey, { label: string; swatch: string }> = {
@@ -162,7 +175,6 @@ export default function FlyMap({ lat, lng, overlays, airports, style, visible, o
             attribution: s.attr,
             maxNativeZoom: s.maxNative,
             maxZoom: 18,
-            subdomains: "abcd",
             className: style === "sectional" || style === "terminal" ? "fc-chart-tiles" : "",
           })
           .addTo(m);
