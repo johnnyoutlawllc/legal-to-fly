@@ -265,6 +265,13 @@ export default function Home() {
           Legal to Fly is independent study material and is not affiliated with
           or endorsed by the Federal Aviation Administration. Always confirm
           against the current 14 CFR Part 107.
+          <p className="mt-3">
+            A{" "}
+            <a href="https://dataday.studio" className="underline hover:text-white">
+              DataDay.Studio
+            </a>{" "}
+            project
+          </p>
         </div>
       </footer>
     </div>
