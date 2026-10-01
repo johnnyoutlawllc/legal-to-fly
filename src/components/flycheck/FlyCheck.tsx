@@ -325,7 +325,9 @@ export function FlyCheck({ initial, hero = true }: { initial?: GeoResult; hero?:
   }, [busy]);
 
   const check = useCallback(async (g: GeoResult) => {
-    setLoc(g);
+    // A re-check keeps the old briefing on screen (dimmed) instead of
+    // collapsing the page to a spinner and rebuilding it.
+    const hadResults = !!document.getElementById("fc-results");
     setErr("");
     setBusy("check");
     setLine(0);
@@ -333,15 +335,17 @@ export function FlyCheck({ initial, hero = true }: { initial?: GeoResult; hero?:
       const r = await fetch(`/api/fly-check?lat=${g.lat.toFixed(4)}&lng=${g.lng.toFixed(4)}`);
       if (!r.ok) throw new Error("check failed");
       const data = (await r.json()) as FlyReport;
+      setLoc(g);
       setReport(data);
       const u = new URL(window.location.href);
       u.searchParams.set("lat", g.lat.toFixed(4));
       u.searchParams.set("lng", g.lng.toFixed(4));
       u.searchParams.set("place", g.label);
       window.history.replaceState(null, "", u);
-      requestAnimationFrame(() =>
-        document.getElementById("fc-results")?.scrollIntoView({ behavior: "smooth", block: "start" }),
-      );
+      if (!hadResults)
+        requestAnimationFrame(() =>
+          document.getElementById("fc-results")?.scrollIntoView({ behavior: "smooth", block: "start" }),
+        );
     } catch {
       setErr("Something went wrong pulling the briefing. Try again in a moment.");
     } finally {
@@ -556,7 +560,7 @@ export function FlyCheck({ initial, hero = true }: { initial?: GeoResult; hero?:
       </section>
 
       {/* ── Loading radar ── */}
-      {busy === "check" && (
+      {busy === "check" && !report && (
         <div className="mx-auto flex max-w-6xl flex-col items-center px-6 py-16">
           <div className="fc-radar relative h-44 w-44 rounded-full border border-[var(--accent)]/30">
             <div className="absolute inset-6 rounded-full border border-[var(--accent)]/20" />
@@ -569,8 +573,18 @@ export function FlyCheck({ initial, hero = true }: { initial?: GeoResult; hero?:
       )}
 
       {/* ── Results ── */}
-      {report && av && cond && busy !== "check" && (
-        <div id="fc-results" className="mx-auto max-w-6xl scroll-mt-4 px-6 pb-20">
+      {report && av && cond && (
+        <div
+          id="fc-results"
+          aria-busy={busy === "check"}
+          className={`mx-auto max-w-6xl scroll-mt-4 px-6 pb-20 transition-opacity duration-300 ${busy === "check" ? "pointer-events-none opacity-40" : ""}`}
+        >
+          {busy === "check" && (
+            <p className="mb-3 flex items-center gap-2 text-sm text-[var(--muted)]" role="status">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-[var(--accent)]" />
+              {LOADING_LINES[line]}
+            </p>
+          )}
           {/* Verdict */}
           <section className="fc-rise relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-white/[0.05] via-white/[0.015] to-transparent p-6 sm:p-8">
             <div
