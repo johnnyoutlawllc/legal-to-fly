@@ -10,6 +10,7 @@ import { compass } from "@/lib/flycheck/geo";
 import { ForecastStrip, KpGauge, LEVEL_COLOR, SunArc, VerdictRing, WindDial } from "./Widgets";
 import { OVERLAYS, STYLES, type MapStyle, type OverlayKey } from "./FlyMap";
 import { Decoder } from "./Decoder";
+import { TfrPanel } from "./TfrPanel";
 
 const FlyMap = dynamic(() => import("./FlyMap"), {
   ssr: false,
@@ -200,9 +201,10 @@ function Card({ id, title, eyebrow, children, learn, delay = 0, className = "" }
         {learn && (
           <Link
             href={`/learn/${learn.slug}`}
-            className="shrink-0 rounded-full border border-white/10 px-3 py-1 text-xs text-[var(--muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--text)]"
+            className="shrink-0 pt-1 text-[11px] text-[#6b6b6b] transition-colors hover:text-[var(--muted)]"
+            title={`Part 107 lesson: ${learn.label}`}
           >
-            Learn: {learn.label} →
+            {learn.label} explained
           </Link>
         )}
       </header>
@@ -219,8 +221,9 @@ function FindingRow({ f, pilot }: { f: Finding; pilot: boolean }) {
       <div className="min-w-0 flex-1">
         <p className="font-medium leading-snug">{f.title}</p>
         <p className="mt-1 text-sm leading-6 text-[var(--muted)]">{f.detail}</p>
+        {f.tfr && <TfrPanel d={f.tfr} href={f.link?.href} />}
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          {f.cite && (pilot || f.level !== "info") && (
+          {f.cite && pilot && (
             <span className="rounded-md bg-white/[0.05] px-2 py-0.5 font-mono text-[11px] text-[var(--muted)]">{f.cite}</span>
           )}
           {f.link && (
@@ -271,7 +274,10 @@ const LOADING_LINES = [
 
 /* ── Main ─────────────────────────────────────────────────────────────────── */
 
-export function FlyCheck() {
+/** hero=false renders just the search bar, for pages that bring their own
+ *  heading (the place pages). initial runs a check on load when the URL
+ *  does not already carry one. */
+export function FlyCheck({ initial, hero = true }: { initial?: GeoResult; hero?: boolean } = {}) {
   const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
   const [q, setQ] = useState("");
   const [loc, setLoc] = useState<GeoResult | null>(null);
@@ -354,7 +360,12 @@ export function FlyCheck() {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setQ(label);
       check({ lat, lng, label });
+    } else if (initial) {
+      setQ(initial.label);
+      check(initial);
     }
+    // initial is a fixed prop per page; running once is the point.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [check]);
 
   const search = async (text: string) => {
@@ -459,22 +470,26 @@ export function FlyCheck() {
       <section className="relative overflow-hidden">
         <div className="fc-grid pointer-events-none absolute inset-0" />
         <div className="fc-glow pointer-events-none absolute -top-40 left-1/2 h-[520px] w-[820px] -translate-x-1/2 rounded-full" />
-        <div className="relative mx-auto max-w-6xl px-6 pb-14 pt-16 sm:pt-24">
+        <div className={`relative mx-auto max-w-6xl px-6 ${hero ? "pb-14 pt-16 sm:pt-24" : "pb-8 pt-2"}`}>
+          {hero && (
+          <>
           <p className="fc-rise inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-[var(--muted)]">
             <span className="fc-dot h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
-            Live FAA airspace, TFRs and aviation weather
+            Free · live FAA data · any U.S. address
           </p>
           <h1 className="fc-rise mt-6 max-w-4xl text-5xl font-semibold leading-[1.02] tracking-tight sm:text-7xl" style={{ animationDelay: "60ms" }}>
-            Can I fly <span className="fc-gradient-text">here?</span>
+            Can I fly my drone <span className="fc-gradient-text">here?</span>
           </h1>
           <p className="fc-rise mt-5 max-w-2xl text-lg leading-8 text-[var(--muted)]" style={{ animationDelay: "120ms" }}>
-            One search reads the FAA&apos;s airspace maps, the LAANC grid, temporary flight restrictions,
-            the nearest METAR and TAF, and the sun. Then it tells you, in plain English, what it means for
-            your drone.
+            Type an address or use your location. We check FAA airspace, no-fly zones, temporary flight
+            restrictions, nearby airports and the weather, and tell you in plain English whether you can fly
+            there right now.
           </p>
+          </>
+          )}
 
           <form
-            className="fc-rise mt-9 flex max-w-3xl flex-col gap-3 sm:flex-row"
+            className={`fc-rise flex max-w-3xl flex-col gap-3 sm:flex-row ${hero ? "mt-9" : ""}`}
             style={{ animationDelay: "180ms" }}
             onSubmit={(e) => {
               e.preventDefault();
@@ -520,7 +535,7 @@ export function FlyCheck() {
             </button>
           </form>
 
-          <div className="fc-rise mt-4 flex flex-wrap items-center gap-2 text-sm" style={{ animationDelay: "240ms" }}>
+          <div className={`fc-rise mt-4 flex-wrap items-center gap-2 text-sm ${hero ? "flex" : "hidden"}`} style={{ animationDelay: "240ms" }}>
             <span className="text-[var(--muted)]">Try</span>
             {["Rockwall, TX", "Grand Canyon Village, AZ", "Dallas Love Field", "Central Park, New York"].map((s) => (
               <button

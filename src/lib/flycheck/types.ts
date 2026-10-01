@@ -14,6 +14,8 @@ export interface Finding {
   learn?: string;
   /** Where to act on it (LAANC, DroneZone, TFR detail). */
   link?: { href: string; label: string };
+  /** The real NOTAM behind a TFR finding. */
+  tfr?: TfrDetail | null;
 }
 
 export interface Section<T> {
@@ -47,12 +49,41 @@ export interface AirspaceData {
   overhead: AirspaceVolume[];
 }
 
+export interface TfrArea {
+  name: string;
+  from: string | null;
+  to: string | null;
+  radiusNm: number | null;
+  floor: string;
+  ceiling: string;
+}
+
+/** Parsed from the FAA's per-NOTAM XML (tfr.faa.gov/download/detail_*.xml). */
+export interface TfrDetail {
+  issued: string | null;
+  regulation: string | null;
+  kind: string | null;
+  reason: string | null;
+  place: string | null;
+  from: string | null;
+  to: string | null;
+  /** "active" | "upcoming" | "expired", judged at fetch time. */
+  status: "active" | "upcoming" | "expired" | "unknown";
+  areas: TfrArea[];
+  dronesBanned: boolean;
+  /** Operating restrictions, abbreviations expanded. */
+  rules: string[];
+  /** The lines that mention drones (UAS / model aircraft), expanded. */
+  droneRules: string[];
+}
+
 export interface Tfr {
   id: string;
   title: string;
   type: string;
   inside: boolean;
   distanceNm: number;
+  detail?: TfrDetail | null;
 }
 
 export interface SpecialUse {

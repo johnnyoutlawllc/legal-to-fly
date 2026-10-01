@@ -1,4 +1,5 @@
 import { bearing, distanceNm, distanceToGeometryNm, parseDms, pointInGeometry } from "./geo";
+import { bansDrones, plainNotam, TFR_TYPE } from "./notam";
 import type {
   Airport,
   AirspaceData,
@@ -14,6 +15,8 @@ import type {
   Taf,
   TafPeriod,
   Tfr,
+  TfrArea,
+  TfrDetail,
 } from "./types";
 
 /** Every source here is free, public and keyless. Each fetch carries its own
@@ -280,6 +283,90 @@ async function tfrCollection() {
   );
 }
 
+const unescapeXml = (s: string) =>
+  s
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCharCode(parseInt(h, 16)))
+    .replace(/&#(\d+);/g, (_, d) => String.fromCharCode(Number(d)))
+    .replace(/&amp;/g, "&");
+
+const tag = (s: string, t: string) => [...s.matchAll(new RegExp(`<${t}>([\\s\\S]*?)</${t}>`, "g"))].map((m) => unescapeXml(m[1]).trim());
+const utc = (v: string | undefined) => (v ? new Date(`${v}Z`).toISOString() : null);
+
+function altitude(val: string | undefined, code: string | undefined, uom: string | undefined) {
+  if (!val || val === "0") return "the surface";
+  const n = Number(val).toLocaleString("en-US");
+  if (uom === "FL") return `FL${val}`;
+  return code === "HEI" ? `${n} ft above ground` : `${n} ft MSL`;
+}
+
+/** The FAA's own record for one NOTAM: times, areas, and the restriction
+ *  text. ~100 KB of XML (it carries the shapes too), so it is only fetched
+ *  for TFRs that are over the point or close to it. */
+async function tfrDetail(id: string): Promise<TfrDetail | null> {
+  const [yr, num] = id.split("/");
+  if (!yr || !num) return null;
+  const res = await fetch(`https://tfr.faa.gov/download/detail_${yr}_${num}.xml`, {
+    headers: { "User-Agent": UA },
+    cache: "no-store",
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!res.ok) return null;
+  const x = await res.text();
+
+  const areas: TfrArea[] = [...x.matchAll(/<TFRAreaGroup>([\s\S]*?)<\/TFRAreaGroup>/g)].map((m) => {
+    const g = m[1];
+    const r = tag(g, "valRadiusArc")[0];
+    return {
+      name: tag(g, "txtName")[0] ?? "Area",
+      from: utc(tag(g, "dateEffective")[0]),
+      to: utc(tag(g, "dateExpire")[0]),
+      radiusNm: r ? Number(r) : null,
+      floor: altitude(tag(g, "valDistVerLower")[0], tag(g, "codeDistVerLower")[0], tag(g, "uomDistVerLower")[0]),
+      ceiling: altitude(tag(g, "valDistVerUpper")[0], tag(g, "codeDistVerUpper")[0], tag(g, "uomDistVerUpper")[0]),
+    };
+  });
+
+  const starts = areas.map((a) => a.from).filter(Boolean).sort() as string[];
+  const ends = areas.map((a) => a.to).filter(Boolean).sort() as string[];
+  const from = starts[0] ?? null;
+  const to = ends[ends.length - 1] ?? null;
+  const now = Date.now();
+  const status: TfrDetail["status"] = !from
+    ? "unknown"
+    : areas.some((a) => a.from && Date.parse(a.from) <= now && (!a.to || Date.parse(a.to) >= now))
+      ? "active"
+      : Date.parse(from) > now
+        ? "upcoming"
+        : to && Date.parse(to) < now
+          ? "expired"
+          : "upcoming";
+
+  const raw = tag(x, "txtInstr").filter(Boolean);
+  const modern = (tag(x, "txtDescrModern")[0] ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+  const reason = /Reason for NOTAM\s*:\s*(.+?)\s+(Type|Replaced|Pilots|Affected)/.exec(modern)?.[1] ?? null;
+  const regulation = tag(x, "codeType").find((c) => /^\d{2}\.\d+$/.test(c)) ?? null;
+  const city = tag(x, "txtNameCity")[0];
+  const state = tag(x, "txtNameUSState")[0];
+
+  return {
+    issued: utc(tag(x, "dateIssued")[0]),
+    regulation,
+    kind: regulation ? (TFR_TYPE[regulation] ?? null) : null,
+    reason,
+    place: [city, state && state.charAt(0) + state.slice(1).toLowerCase()].filter(Boolean).join(", ") || null,
+    from,
+    to,
+    status,
+    areas,
+    dronesBanned: bansDrones(raw),
+    rules: raw.map(plainNotam),
+    droneRules: raw.filter((r) => /UAS|UNMANNED|MODEL ACFT|DRONE/.test(r)).map(plainNotam),
+  };
+}
+
 const SUA_LABEL: Record<string, string> = {
   P: "Prohibited area",
   R: "Restricted area",
@@ -334,6 +421,16 @@ export async function restrictions(
     });
   }
   const tfrs = [...byId.values()].sort((a, b) => a.distanceNm - b.distanceNm);
+
+  // Read the actual NOTAM for the ones that matter: over the point or within 10 NM.
+  await Promise.all(
+    tfrs
+      .filter((t) => t.inside || t.distanceNm <= 10)
+      .slice(0, 5)
+      .map(async (t) => {
+        t.detail = await tfrDetail(t.id).catch(() => null);
+      }),
+  );
 
   const sua: SpecialUse[] = suaRows.map((a) => {
     const type = String(a.TYPE_CODE ?? "");

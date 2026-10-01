@@ -37,15 +37,25 @@ export function airspaceVerdict(
 
   // ── Hard stops ──
   for (const t of restrictions?.tfrs ?? []) {
-    if (t.inside)
-      f.push({
-        level: "stop",
-        title: `Inside TFR ${t.id}${t.type ? ` (${t.type.toLowerCase()})` : ""}`,
-        detail: `${t.title}. A TFR can ban drones outright for its active hours. Read the NOTAM for the times before planning anything here.`,
-        cite: "14 CFR 91.137-91.145, 99.7",
-        learn: "airspace",
-        link: tfrLink(t.id),
-      });
+    if (!t.inside) continue;
+    const d = t.detail;
+    // A TFR whose every window has closed no longer restricts anything.
+    if (d?.status === "expired") continue;
+    const what = d?.reason ?? d?.kind ?? t.title;
+    const when = d?.status === "active" ? "in effect now" : d?.status === "upcoming" ? "scheduled" : "";
+    f.push({
+      level: d?.status === "upcoming" && d.from && Date.parse(d.from) - Date.now() > 24 * 3600_000 ? "caution" : "stop",
+      title: d
+        ? `${d.dronesBanned ? "No drones" : "Flight restricted"}: ${d.kind ? `${d.kind} TFR` : what}${when ? `, ${when}` : ""}`
+        : `Inside TFR ${t.id}`,
+      detail: d
+        ? `${d.reason ?? "Temporary flight restriction"}. FAA NOTAM ${t.id}${d.place ? ` for ${d.place}` : ""}.`
+        : `${t.title}. The FAA's NOTAM detail did not load; open it before planning anything here.`,
+      cite: d?.regulation ? `14 CFR ${d.regulation}` : "14 CFR 91.137-91.145, 99.7",
+      learn: "airspace",
+      link: tfrLink(t.id),
+      tfr: d,
+    });
   }
   if (restrictions?.park)
     f.push({
@@ -144,14 +154,18 @@ export function airspaceVerdict(
     });
 
   // ── TFRs nearby (not over the point) ──
-  for (const t of (restrictions?.tfrs ?? []).filter((x) => !x.inside && x.distanceNm <= 10))
+  for (const t of (restrictions?.tfrs ?? []).filter((x) => !x.inside && x.distanceNm <= 10)) {
+    const d = t.detail;
+    if (d?.status === "expired") continue;
     f.push({
       level: "caution",
-      title: `TFR ${t.distanceNm} NM away`,
-      detail: `${t.title}. Not over this point, but close enough that a drifting flight or a moved event could put you inside it.`,
-      cite: "14 CFR 91.137-91.145, 99.7",
+      title: `${d?.kind ? `${d.kind} TFR` : "Temporary flight restriction"} ${t.distanceNm} NM away`,
+      detail: `Not over this spot, but close. FAA NOTAM ${t.id}${d?.place ? ` for ${d.place}` : ""}.`,
+      cite: d?.regulation ? `14 CFR ${d.regulation}` : "14 CFR 91.137-91.145, 99.7",
       link: tfrLink(t.id),
+      tfr: d,
     });
+  }
 
   // ── Landing areas close in ──
   for (const a of (airports ?? []).filter((x) => x.distanceNm <= 1.5).slice(0, 3))
