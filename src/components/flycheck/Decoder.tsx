@@ -42,6 +42,7 @@ export function Decoder({ raw, title }: { raw: string; title: string }) {
   const taf = raw.trim().startsWith("TAF");
   const segs = useMemo(() => segments(tokens, taf), [tokens, taf]);
   const [hover, setHover] = useState<number | null>(null);
+  const [open, setOpen] = useState(true);
   const kinds = [...new Set(tokens.filter((t) => t.m).map((t) => t.kind))];
 
   const on = (i: number) => () => setHover(i);
@@ -51,17 +52,26 @@ export function Decoder({ raw, title }: { raw: string; title: string }) {
     <div className="overflow-hidden rounded-2xl border border-white/[0.07] bg-gradient-to-b from-black/50 to-black/20">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-3">
         <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--muted)]">{title}</p>
-        <div className="flex flex-wrap gap-x-3 gap-y-1">
-          {kinds.map((k) => (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          {open &&
+            kinds.map((k) => (
             <span key={k} className="flex items-center gap-1.5 text-[11px] text-[var(--muted)]">
               <span className="h-2 w-2 rounded-full" style={{ background: KIND[k].color, boxShadow: `0 0 8px ${KIND[k].color}` }} />
               {KIND[k].label}
             </span>
           ))}
+          <button
+            type="button"
+            onClick={() => setOpen((o) => !o)}
+            aria-expanded={open}
+            className="rounded-md border border-white/10 px-2.5 py-1 text-[11px] font-medium text-[var(--muted)] transition-colors hover:border-white/25 hover:text-white"
+          >
+            {open ? "Hide Code Details" : "Show Code Details"}
+          </button>
         </div>
       </div>
 
-      {segs.map((seg, si) => (
+      {open && segs.map((seg, si) => (
         <div key={si} className={`px-4 py-4 ${si ? "border-t border-dashed border-white/[0.06]" : ""}`}>
           {/* Raw, color coded */}
           <p className="flex flex-wrap gap-x-2 gap-y-1 font-mono text-[15px] leading-7 sm:text-base">
