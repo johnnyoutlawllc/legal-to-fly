@@ -18,6 +18,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <AuthProvider>{children}</AuthProvider>
+        <div className="border-t border-[var(--border)] py-4 text-center text-xs text-[var(--muted)]">
+          A{" "}
+          <a href="https://dataday.studio" className="underline hover:text-white">
+            DataDay.Studio
+          </a>{" "}
+          project
+        </div>
         <WebsiteTracker />
       </body>
     </html>

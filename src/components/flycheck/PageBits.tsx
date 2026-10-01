@@ -131,7 +131,6 @@ export function FlyFooter() {
           <Link href="/learn" className="hover:text-[var(--muted)]">Part 107 study guide</Link>
           <Link href="/exam" className="hover:text-[var(--muted)]">Practice test</Link>
           <Link href="/" className="hover:text-[var(--muted)]">Legal to Fly</Link>
-          <a href="https://dataday.studio" className="hover:text-[var(--muted)]">A DataDay.Studio project</a>
         </p>
       </div>
     </footer>
