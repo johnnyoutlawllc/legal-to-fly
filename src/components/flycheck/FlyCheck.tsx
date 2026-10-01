@@ -185,13 +185,14 @@ function Card({ id, title, eyebrow, children, learn, delay = 0, className = "" }
   delay?: number;
   className?: string;
 }) {
+  const [open, setOpen] = useState(true);
   return (
     <section
       id={`fc-${id}`}
       className={`fc-card fc-rise rounded-2xl border border-white/[0.07] bg-gradient-to-b from-white/[0.035] to-white/[0.01] p-5 backdrop-blur sm:p-6 ${className}`}
       style={{ animationDelay: `${delay}ms` }}
     >
-      <header className="mb-4 flex items-start justify-between gap-4">
+      <header className={`flex items-start justify-between gap-4 ${open ? "mb-4" : ""}`}>
         <div>
           {eyebrow && <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">{eyebrow}</p>}
           <h2 className="mt-1 text-lg font-semibold tracking-tight">{title}</h2>
@@ -205,8 +206,17 @@ function Card({ id, title, eyebrow, children, learn, delay = 0, className = "" }
             {learn.label} explained
           </Link>
         )}
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          aria-label={`${open ? "Collapse" : "Expand"} ${title}`}
+          className="ml-auto shrink-0 rounded-md border border-white/10 px-2.5 py-1 text-[11px] font-medium text-[var(--muted)] transition-colors hover:border-white/25 hover:text-white"
+        >
+          {open ? "Collapse" : "Expand"}
+        </button>
       </header>
-      {children}
+      {open && children}
     </section>
   );
 }
