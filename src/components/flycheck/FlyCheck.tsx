@@ -451,7 +451,9 @@ export function FlyCheck({ initial, hero = true }: { initial?: GeoResult; hero?:
   );
 
   const show = (id: SectionId) => !prefs.hidden.includes(id);
-  const pilot = prefs.view === "pilot";
+  // The Plain English / Pilot view toggle was removed; everyone gets the plain
+  // view, including visitors whose saved prefs still say "pilot".
+  const pilot = false;
   const av = report?.airspaceVerdict;
   const m = report?.metar.data ?? null;
 
@@ -620,17 +622,6 @@ export function FlyCheck({ initial, hero = true }: { initial?: GeoResult; hero?:
           {/* Controls */}
           <div className="z-[500] -mx-6 mt-6 sm:sticky sm:top-0 border-y border-white/[0.06] bg-[#0a0a0a]/85 px-6 py-3 backdrop-blur-xl">
             <div className="flex flex-wrap items-center gap-2">
-              <div className="flex rounded-full border border-white/10 p-0.5 text-xs">
-                {(["plain", "pilot"] as const).map((v) => (
-                  <button
-                    key={v}
-                    onClick={() => update({ view: v })}
-                    className={`rounded-full px-3 py-1.5 font-medium transition ${prefs.view === v ? "bg-[var(--text)] text-black" : "text-[var(--muted)] hover:text-[var(--text)]"}`}
-                  >
-                    {v === "plain" ? "Plain English" : "Pilot view"}
-                  </button>
-                ))}
-              </div>
               <label className="flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-xs text-[var(--muted)]">
                 Wind limit
                 <select
