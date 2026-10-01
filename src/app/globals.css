@@ -142,3 +142,21 @@ body {
   box-shadow: 0 0 0 3px #ff6b35, 0 0 22px 4px rgba(255, 107, 53, 0.85);
   border-color: #fff;
 }
+
+/* Live weather stations */
+.fc-wx { position: relative; width: 14px; height: 14px; }
+.fc-wx-dot {
+  position: absolute; inset: 0; border-radius: 9999px; background: var(--c);
+  border: 2px solid rgba(255, 255, 255, 0.9); box-shadow: 0 0 12px var(--c);
+}
+.fc-wx-staff {
+  position: absolute; left: 6px; bottom: 7px; width: 2px; border-radius: 2px;
+  background: linear-gradient(to top, var(--c), #fff); transform-origin: 50% 100%;
+}
+.fc-wx-tag {
+  position: absolute; left: 17px; top: -3px; white-space: nowrap; padding: 1px 5px; border-radius: 6px;
+  background: rgba(10, 10, 10, 0.82); color: #f5f5f5; font: 600 10px/16px var(--font-inter), system-ui, sans-serif;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.fc-wx-tag b { color: var(--c); margin-right: 4px; font-weight: 700; }
+.fc-wx-tag em { font-style: normal; color: #fbbf24; margin-left: 2px; }

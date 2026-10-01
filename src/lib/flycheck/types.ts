@@ -184,11 +184,28 @@ export interface SpaceWeather {
   observed: string;
 }
 
+/** A reporting station for the map's Live weather layer. */
+export interface WxStation {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  category: string | null;
+  windDir: number | null;
+  windKt: number | null;
+  gustKt: number | null;
+  visibility: string | null;
+  wx: string | null;
+  raw: string;
+  observed: string | null;
+}
+
 export interface Overlays {
   grid: GeoJSON.FeatureCollection;
   airspace: GeoJSON.FeatureCollection;
   sua: GeoJSON.FeatureCollection;
   tfr: GeoJSON.FeatureCollection;
+  stations: WxStation[];
 }
 
 export interface FlyReport {

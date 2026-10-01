@@ -17,6 +17,7 @@ import type {
   Tfr,
   TfrArea,
   TfrDetail,
+  WxStation,
 } from "./types";
 
 /** Every source here is free, public and keyless. Each fetch carries its own
@@ -592,6 +593,29 @@ async function nearest<T extends { lat: number; lon: number }>(
     }
   }
   return null;
+}
+
+/** Every reporting station near the point, for the map's Live weather layer.
+ *  Same request (and cache entry) as the first try in nearest(). */
+export async function weatherStations(lat: number, lng: number): Promise<WxStation[]> {
+  const rows = await getJson<AwcMetar[]>(
+    `https://aviationweather.gov/api/data/metar?bbox=${awcBox(lat, lng, 0.6)}&format=json`,
+    300,
+  );
+  return (Array.isArray(rows) ? rows : []).map((m) => ({
+    id: m.icaoId,
+    name: m.name.replace(/, US$/, ""),
+    lat: m.lat,
+    lng: m.lon,
+    category: m.fltCat ?? null,
+    windDir: typeof m.wdir === "number" ? m.wdir : null,
+    windKt: m.wspd ?? null,
+    gustKt: m.wgst ?? null,
+    visibility: m.visib === null || m.visib === undefined ? null : String(m.visib),
+    wx: m.wxString || null,
+    raw: m.rawOb,
+    observed: m.obsTime ? new Date(m.obsTime * 1000).toISOString() : m.reportTime,
+  }));
 }
 
 export async function metar(lat: number, lng: number): Promise<Metar | null> {

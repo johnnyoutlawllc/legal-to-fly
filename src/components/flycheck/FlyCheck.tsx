@@ -41,7 +41,6 @@ const WIND_PRESETS = [
 
 interface Prefs {
   style: MapStyle;
-  view: "plain" | "pilot";
   hidden: SectionId[];
   windLimitMph: number;
   overlays: Record<OverlayKey, boolean>;
@@ -49,10 +48,9 @@ interface Prefs {
 
 const DEFAULT_PREFS: Prefs = {
   style: "sectional",
-  view: "plain",
   hidden: [],
   windLimitMph: 20,
-  overlays: { grid: true, airspace: true, tfr: true, sua: true, airports: true },
+  overlays: { weather: false, grid: true, airspace: true, tfr: true, sua: true, airports: true },
 };
 
 const PREFS_KEY = "ltf.flycheck.prefs";
@@ -213,7 +211,7 @@ function Card({ id, title, eyebrow, children, learn, delay = 0, className = "" }
   );
 }
 
-function FindingRow({ f, pilot }: { f: Finding; pilot: boolean }) {
+function FindingRow({ f }: { f: Finding }) {
   const c = LEVEL_COLOR[f.level];
   return (
     <li className="flex gap-3 rounded-xl border border-white/[0.06] bg-black/20 p-3.5">
@@ -223,9 +221,6 @@ function FindingRow({ f, pilot }: { f: Finding; pilot: boolean }) {
         <p className="mt-1 text-sm leading-6 text-[var(--muted)]">{f.detail}</p>
         {f.tfr && <TfrPanel d={f.tfr} href={f.link?.href} />}
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          {f.cite && pilot && (
-            <span className="rounded-md bg-white/[0.05] px-2 py-0.5 font-mono text-[11px] text-[var(--muted)]">{f.cite}</span>
-          )}
           {f.link && (
             <a
               href={f.link.href}
@@ -235,11 +230,6 @@ function FindingRow({ f, pilot }: { f: Finding; pilot: boolean }) {
             >
               {f.link.label} ↗
             </a>
-          )}
-          {f.learn && pilot && (
-            <Link href={`/learn/${f.learn}`} className="text-[11px] text-[var(--muted)] underline underline-offset-2 hover:text-[var(--text)]">
-              lesson
-            </Link>
           )}
         </div>
       </div>
@@ -451,9 +441,6 @@ export function FlyCheck({ initial, hero = true }: { initial?: GeoResult; hero?:
   );
 
   const show = (id: SectionId) => !prefs.hidden.includes(id);
-  // The Plain English / Pilot view toggle was removed; everyone gets the plain
-  // view, including visitors whose saved prefs still say "pilot".
-  const pilot = false;
   const av = report?.airspaceVerdict;
   const m = report?.metar.data ?? null;
 
@@ -707,9 +694,37 @@ export function FlyCheck({ initial, hero = true }: { initial?: GeoResult; hero?:
                     })}
                   </div>
                 </div>
-                <p className="pointer-events-none absolute bottom-3 left-3 z-[400] rounded-lg bg-black/70 px-2.5 py-1 text-[11px] text-[var(--muted)] backdrop-blur-md">
-                  Click the map to check another spot · click in to zoom with the wheel
-                </p>
+                <div className="pointer-events-none absolute bottom-3 left-3 z-[400] flex flex-col items-start gap-2">
+                  {prefs.overlays.weather && (
+                    <div className="rounded-xl border border-white/10 bg-black/75 px-3 py-2 text-[11px] text-[var(--muted)] backdrop-blur-md">
+                      <div className="flex items-center gap-2">
+                        <span>Radar</span>
+                        <span
+                          className="h-2 w-28 rounded-full"
+                          style={{ background: "linear-gradient(90deg,#04e9e7,#019ff4,#02fd02,#01c501,#fdf802,#fd9500,#fd0000,#bc0000,#f800fd)" }}
+                        />
+                        <span>light → severe</span>
+                      </div>
+                      <div className="mt-1.5 flex items-center gap-3">
+                        {[
+                          ["VFR", "#34d399"],
+                          ["MVFR", "#60a5fa"],
+                          ["IFR", "#f87171"],
+                          ["LIFR", "#e879f9"],
+                        ].map(([k, c]) => (
+                          <span key={k} className="flex items-center gap-1">
+                            <span className="h-2 w-2 rounded-full" style={{ background: c }} />
+                            {k}
+                          </span>
+                        ))}
+                        <span className="text-[#666]">· wind in mph, G = gusts</span>
+                      </div>
+                    </div>
+                  )}
+                  <p className="rounded-lg bg-black/70 px-2.5 py-1 text-[11px] text-[var(--muted)] backdrop-blur-md">
+                    Click the map to check another spot · click in to zoom with the wheel
+                  </p>
+                </div>
               </section>
             )}
 
@@ -776,7 +791,7 @@ export function FlyCheck({ initial, hero = true }: { initial?: GeoResult; hero?:
                 {!report.airspace.ok && <Unavailable what="FAA airspace data" />}
                 <ul className="space-y-2.5">
                   {av.findings.map((f, i) => (
-                    <FindingRow key={i} f={f} pilot={pilot} />
+                    <FindingRow key={i} f={f} />
                   ))}
                 </ul>
                 {report.airspace.data?.grid && (
@@ -789,19 +804,6 @@ export function FlyCheck({ initial, hero = true }: { initial?: GeoResult; hero?:
                     />
                     <Stat label="Airspace" value={report.airspace.data.grid.airspace.map((a) => `Class ${a}`).join(", ") || "n/a"} />
                     <Stat label="Facility" value={report.airspace.data.grid.airports.map((a) => a.id).join(", ")} sub={report.airspace.data.grid.effective && `map eff. ${report.airspace.data.grid.effective}`} />
-                  </div>
-                )}
-                {pilot && report.airspace.data && report.airspace.data.overhead.length > 0 && (
-                  <div className="mt-4">
-                    <p className="text-xs uppercase tracking-[0.14em] text-[var(--muted)]">Overhead</p>
-                    <ul className="mt-2 space-y-1 font-mono text-xs text-[var(--muted)]">
-                      {report.airspace.data.overhead.map((v, i) => (
-                        <li key={i}>
-                          {v.cls === "E" ? "Class E" : `Class ${v.cls}`} · floor {v.lowerFt.toLocaleString()} ft {v.lowerRef}
-                          {v.upperFt ? ` · top ${v.upperFt.toLocaleString()} ft` : ""} · {v.name}
-                        </li>
-                      ))}
-                    </ul>
                   </div>
                 )}
               </Card>
@@ -820,12 +822,11 @@ export function FlyCheck({ initial, hero = true }: { initial?: GeoResult; hero?:
                     ["Remote ID on", "Standard Remote ID or a broadcast module, unless at a FRIA.", "Part 89"],
                     ["Stadiums", "A standing restriction keeps drones 3 NM from stadiums of 30,000+ seats from 1 hour before to 1 hour after major events.", "standing FDC NOTAM"],
                     ["Check NOTAMs", "This page does not read them. Look before every flight.", "107.49(a)"],
-                  ].map(([h, d, c]) => (
+                  ].map(([h, d]) => (
                     <li key={h} className="flex gap-3">
                       <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
                       <div>
                         <span className="font-medium">{h}.</span> <span className="text-[var(--muted)]">{d}</span>
-                        {pilot && <span className="ml-1.5 font-mono text-[11px] text-[#666]">{c}</span>}
                       </div>
                     </li>
                   ))}
@@ -839,7 +840,7 @@ export function FlyCheck({ initial, hero = true }: { initial?: GeoResult; hero?:
                 id="weather"
                 eyebrow="Weather now"
                 title={m ? `${m.station.id} · ${m.station.name}` : "Current conditions"}
-                learn={{ slug: pilot ? "metar-taf" : "weather", label: pilot ? "METARs & TAFs" : "Weather" }}
+                learn={{ slug: "weather", label: "Weather" }}
                 className="lg:col-span-12"
                 delay={200}
               >
@@ -856,17 +857,17 @@ export function FlyCheck({ initial, hero = true }: { initial?: GeoResult; hero?:
                         <WindDial
                           dir={m.windDir}
                           variable={m.windVariable}
-                          speed={pilot ? m.windKt : ktToMph(m.windKt)}
-                          gust={m.gustKt ? (pilot ? m.gustKt : ktToMph(m.gustKt)) : null}
-                          limit={pilot ? Math.round(prefs.windLimitMph / 1.15078) : prefs.windLimitMph}
-                          unit={pilot ? "kt" : "mph"}
+                          speed={ktToMph(m.windKt)}
+                          gust={m.gustKt ? ktToMph(m.gustKt) : null}
+                          limit={prefs.windLimitMph}
+                          unit="mph"
                         />
                       </div>
                       <div>
                         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
                           {(() => {
                             const cat = CATEGORY[m.category ?? category(m.visibilitySm, m.ceilingFt)];
-                            return <Stat label="Category" value={cat?.label ?? "n/a"} color={cat?.color} sub={pilot ? cat?.meaning : undefined} />;
+                            return <Stat label="Category" value={cat?.label ?? "n/a"} color={cat?.color} sub={cat?.meaning} />;
                           })()}
                           <Stat
                             label="Visibility"
@@ -882,19 +883,11 @@ export function FlyCheck({ initial, hero = true }: { initial?: GeoResult; hero?:
                           />
                           <Stat
                             label="Temp / dew"
-                            value={m.tempC !== null ? `${Math.round(pilot ? m.tempC : (m.tempC * 9) / 5 + 32)}°${pilot ? "C" : "F"}` : "n/a"}
-                            sub={m.dewC !== null ? `dew ${Math.round(pilot ? m.dewC : (m.dewC * 9) / 5 + 32)}°` : undefined}
+                            value={m.tempC !== null ? `${Math.round((m.tempC * 9) / 5 + 32)}°F` : "n/a"}
+                            sub={m.dewC !== null ? `dew ${Math.round((m.dewC * 9) / 5 + 32)}°` : undefined}
                           />
-                          {pilot && <Stat label="Altimeter" value={m.altimInHg ? `${m.altimInHg.toFixed(2)}"` : "n/a"} sub="inHg" />}
-                          {pilot && (
-                            <Stat
-                              label="Density alt."
-                              value={m.densityAltFt !== null ? `${m.densityAltFt.toLocaleString()} ft` : "n/a"}
-                              sub={`field ${m.station.elevFt.toLocaleString()} ft`}
-                            />
-                          )}
                           {m.wx && <Stat label="Weather" value={<span className="text-base">{wxPlain(m.wx)}</span>} color={LEVEL_COLOR.caution} />}
-                          {!pilot && m.clouds.length > 0 && (
+                          {m.clouds.length > 0 && (
                             <Stat
                               label="Clouds"
                               value={<span className="text-base">{m.clouds.map((c) => `${c.cover} ${c.baseFt?.toLocaleString() ?? ""}`).join(" · ")}</span>}
@@ -903,7 +896,7 @@ export function FlyCheck({ initial, hero = true }: { initial?: GeoResult; hero?:
                         </div>
                         <ul className="mt-4 space-y-2.5">
                           {cond.findings.map((f, i) => (
-                            <FindingRow key={i} f={f} pilot={pilot} />
+                            <FindingRow key={i} f={f} />
                           ))}
                         </ul>
                       </div>
@@ -962,7 +955,7 @@ export function FlyCheck({ initial, hero = true }: { initial?: GeoResult; hero?:
                             </span>
                             <span className="text-[var(--muted)]">
                               {[
-                                p.windKt !== null && (p.windKt === 0 ? "calm" : `wind ${pilot ? `${p.windKt} kt` : `${ktToMph(p.windKt)} mph`}${p.gustKt ? ` gusting ${pilot ? p.gustKt : ktToMph(p.gustKt)}` : ""}`),
+                                p.windKt !== null && (p.windKt === 0 ? "calm" : `wind ${ktToMph(p.windKt)} mph${p.gustKt ? ` gusting ${ktToMph(p.gustKt)}` : ""}`),
                                 p.visibilitySm !== null && `${p.visibilitySm}${p.visibilityPlus ? "+" : ""} SM`,
                                 ceil !== null && `ceiling ${ceil.toLocaleString()} ft`,
                                 p.wx && wxPlain(p.wx),
@@ -993,7 +986,6 @@ export function FlyCheck({ initial, hero = true }: { initial?: GeoResult; hero?:
                     ? `Sunset in ${Math.max(0, Math.round((sun.sunset.getTime() - now.getTime()) / 60000 / 6) / 10)} hours. After that, civil twilight runs until ${sun.dusk.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}.`
                     : "Twilight and night flight are legal with anti-collision lighting visible for 3 statute miles."}
                 </p>
-                {pilot && <p className="mt-2 font-mono text-[11px] text-[#666]">14 CFR 107.29 · times shown in your device&apos;s time zone</p>}
               </Card>
             )}
 

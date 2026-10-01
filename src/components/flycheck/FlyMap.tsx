@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import type * as Leaflet from "leaflet";
 import "leaflet/dist/leaflet.css";
-import type { Airport, Overlays } from "@/lib/flycheck/types";
+import type { Airport, Overlays, WxStation } from "@/lib/flycheck/types";
 
 /** The map card. Basemaps are the FAA's own sectional and terminal area
  *  charts plus imagery and two street styles. Overlays follow sectional
@@ -11,7 +11,7 @@ import type { Airport, Overlays } from "@/lib/flycheck/types";
  *  E surface dashed magenta, the same marks the airspace lesson teaches. */
 
 export type MapStyle = "sectional" | "terminal" | "satellite" | "dark" | "streets";
-export type OverlayKey = "grid" | "airspace" | "tfr" | "sua" | "airports";
+export type OverlayKey = "weather" | "grid" | "airspace" | "tfr" | "sua" | "airports";
 
 const FAA_TILES = "https://tiles.arcgis.com/tiles/ssFJjBXIUyZDrSYZ/arcgis/rest/services";
 
@@ -62,12 +62,39 @@ export const STYLES: Record<MapStyle, { label: string; url: string; attr: string
 };
 
 export const OVERLAYS: Record<OverlayKey, { label: string; swatch: string }> = {
+  weather: { label: "Live weather", swatch: "#38bdf8" },
   grid: { label: "LAANC grid", swatch: "#22c55e" },
   airspace: { label: "Airspace", swatch: "#3b82f6" },
   tfr: { label: "TFRs", swatch: "#ef4444" },
   sua: { label: "Special use", swatch: "#a855f7" },
   airports: { label: "Airports", swatch: "#f5f5f5" },
 };
+
+/** NEXRAD base reflectivity composite from Iowa Environmental Mesonet: free,
+ *  keyless, CORS-open, rebuilt every five minutes. The time bucket in the
+ *  URL makes the browser pull a fresh image when the radar updates. */
+const radarUrl = () =>
+  `https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/{z}/{x}/{y}.png?t=${Math.floor(Date.now() / 300_000)}`;
+
+const CAT_COLOR: Record<string, string> = { VFR: "#34d399", MVFR: "#60a5fa", IFR: "#f87171", LIFR: "#e879f9" };
+
+function stationIcon(lf: typeof Leaflet, s: WxStation) {
+  const c = CAT_COLOR[s.category ?? ""] ?? "#9a9a9a";
+  const mph = s.windKt !== null ? Math.round(s.windKt * 1.15078) : null;
+  const gust = s.gustKt ? Math.round(s.gustKt * 1.15078) : null;
+  // The staff points into the wind, the way a wind barb does.
+  const staff =
+    s.windDir !== null && mph
+      ? `<span class="fc-wx-staff" style="transform:rotate(${s.windDir}deg);height:${Math.min(30, 10 + mph)}px"></span>`
+      : "";
+  const label = mph === null ? "" : mph === 0 ? "calm" : `${mph}${gust ? `<em>G${gust}</em>` : ""}`;
+  return lf.divIcon({
+    className: "",
+    html: `<div class="fc-wx" style="--c:${c}">${staff}<span class="fc-wx-dot"></span><span class="fc-wx-tag"><b>${s.id}</b>${label}</span></div>`,
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
+  });
+}
 
 const ceilingColor = (c: number) =>
   c <= 0 ? "#ef4444" : c <= 100 ? "#f97316" : c <= 200 ? "#f59e0b" : c <= 300 ? "#eab308" : "#22c55e";
@@ -117,6 +144,7 @@ export default function FlyMap({ lat, lng, overlays, airports, style, visible, o
   const pickRef = useRef(onPick);
   const hoverRef = useRef(onHoverAirport);
   const aptMarkers = useRef(new Map<string, Leaflet.Marker>());
+  const radar = useRef<Leaflet.TileLayer | null>(null);
   useEffect(() => {
     pickRef.current = onPick;
     hoverRef.current = onHoverAirport;
@@ -253,6 +281,25 @@ export default function FlyMap({ lat, lng, overlays, airports, style, visible, o
         }),
       );
 
+      radar.current = lf.tileLayer(radarUrl(), {
+          opacity: 0.6,
+          maxNativeZoom: 12,
+          maxZoom: 18,
+          zIndex: 5,
+          attribution: "Radar: NEXRAD via Iowa Environmental Mesonet",
+        });
+      gs.weather = lf.layerGroup([
+        radar.current,
+        ...overlays.stations.map((s) =>
+          lf
+            .marker([s.lat, s.lng], { icon: stationIcon(lf, s), zIndexOffset: 500 })
+            .bindTooltip(
+              `<b>${s.id}</b> ${s.name}<br>${s.category ?? ""}${s.wx ? ` · ${s.wx}` : ""}<br><span style="font-family:ui-monospace,monospace;font-size:11px;opacity:.75">${s.raw}</span>`,
+              { className: "fc-tip", direction: "top", offset: [0, -8] },
+            ),
+        ),
+      ]);
+
       (Object.keys(gs) as OverlayKey[]).forEach((k) => {
         if (visible[k]) gs[k]!.addTo(m);
       });
@@ -278,6 +325,13 @@ export default function FlyMap({ lat, lng, overlays, airports, style, visible, o
     node?.addEventListener("fc-ready", draw);
     return () => node?.removeEventListener("fc-ready", draw);
   }, [lat, lng, overlays, airports, style, visible]);
+
+  // Radar rebuilds every five minutes; follow it while the layer is on.
+  useEffect(() => {
+    if (!visible.weather) return;
+    const t = setInterval(() => radar.current?.setUrl(radarUrl()), 300_000);
+    return () => clearInterval(t);
+  }, [visible.weather]);
 
   // Light up the hovered airport without redrawing anything else.
   useEffect(() => {

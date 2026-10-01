@@ -29,7 +29,7 @@ export async function buildReport(lat: number, lng: number): Promise<FlyReport> 
   const shapes = src.airspaceShapes(la, lo);
   const orEmpty = (p: Promise<GeoJSON.FeatureCollection>) => p.catch(() => EMPTY);
 
-  const [airspace, restrictionsRaw, airports, metar, taf, hourly, space, grid, airspaceFc, suaFc] = await Promise.all([
+  const [airspace, restrictionsRaw, airports, metar, taf, hourly, space, grid, airspaceFc, suaFc, stations] = await Promise.all([
     section(src.airspace(la, lo, elevation, cells)),
     section(src.restrictions(la, lo, sua)),
     section(src.airports(la, lo)),
@@ -40,6 +40,7 @@ export async function buildReport(lat: number, lng: number): Promise<FlyReport> 
     orEmpty(cells),
     orEmpty(shapes),
     orEmpty(sua),
+    src.weatherStations(la, lo).catch(() => []),
   ]);
 
   const restrictions: FlyReport["restrictions"] = {
@@ -64,6 +65,7 @@ export async function buildReport(lat: number, lng: number): Promise<FlyReport> 
       airspace: airspaceFc,
       sua: suaFc,
       tfr: restrictionsRaw.data?.tfrShapes ?? EMPTY,
+      stations,
     },
   };
 }
