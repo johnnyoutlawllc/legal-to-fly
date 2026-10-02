@@ -35,6 +35,7 @@ export default function ExamPage() {
   const [index, setIndex] = useState(0);
   const [remaining, setRemaining] = useState(EXAM_SECONDS);
   const [flagged, setFlagged] = useState<Set<string>>(new Set());
+  const [reviewFilter, setReviewFilter] = useState<"all" | "wrong" | "flagged">("all");
   const [newBadges, setNewBadges] = useState<BadgeDef[]>([]);
   const [saveStatus, setSaveStatus] = useState("");
   const [level, setLevel] = useState<Level>(loadLevel);
@@ -77,6 +78,7 @@ export default function ExamPage() {
     setQuestions(presentAll(buildExamSession(pool), level));
     setAnswers({});
     setFlagged(new Set());
+    setReviewFilter("all");
     setIndex(0);
     setRemaining(EXAM_SECONDS);
     setNewBadges([]);
@@ -339,12 +341,38 @@ export default function ExamPage() {
           </div>
         </div>
 
-        <h2 className="mt-10 text-lg font-semibold">Review every question</h2>
+        <div className="mt-10 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold">Review</h2>
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Filter review">
+            {([
+              ["all", "All", questions.length],
+              ["wrong", "Wrong", questions.length - scored.correct],
+              ["flagged", "Flagged", flagged.size],
+            ] as const).map(([id, label, n]) => (
+              <button
+                key={id}
+                onClick={() => setReviewFilter(id)}
+                aria-pressed={reviewFilter === id}
+                className={`h-9 rounded-lg border px-3 text-sm font-medium transition-colors ${
+                  reviewFilter === id
+                    ? "border-[var(--accent)] bg-[var(--accent)] text-black"
+                    : "border-[var(--border)] text-[var(--muted)] hover:text-[var(--text)]"
+                }`}
+              >
+                {label} <span className="tabular-nums opacity-70">{n}</span>
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="mt-4 space-y-4">
           {questions.map((q, i) => {
             const picked = answers[q.id];
             const correct = q.choices.find((c) => c.is_correct);
             const ok = !!picked && picked === correct?.id;
+            const isFlagged = flagged.has(q.id);
+            if (reviewFilter === "wrong" && ok) return null;
+            if (reviewFilter === "flagged" && !isFlagged) return null;
+            const pickedChoice = !ok && picked ? q.choices.find((c) => c.id === picked) : undefined;
             return (
               <div
                 key={q.id}
@@ -357,15 +385,31 @@ export default function ExamPage() {
                     <span className="mr-2 text-[var(--muted)]">{i + 1}.</span>
                     {q.stem}
                   </p>
-                  <span
-                    className={`shrink-0 text-sm ${
-                      ok ? "text-[var(--correct)]" : "text-[var(--wrong)]"
-                    }`}
-                  >
-                    {ok ? "Correct" : picked ? "Wrong" : "Skipped"}
+                  <span className="flex shrink-0 items-center gap-2 text-sm">
+                    {isFlagged && (
+                      <span className="rounded border border-[var(--accent)]/60 px-1.5 py-0.5 text-xs text-[var(--accent)]">
+                        ⚑ Flagged
+                      </span>
+                    )}
+                    <span className={ok ? "text-[var(--correct)]" : "text-[var(--wrong)]"}>
+                      {ok ? "Correct" : picked ? "Wrong" : "Skipped"}
+                    </span>
                   </span>
                 </div>
                 <QuestionFigure question={q} />
+                {pickedChoice && (
+                  <div className="mt-3 text-sm text-[var(--muted)]">
+                    <p>
+                      <span className="text-[var(--wrong)]">You answered {pickedChoice.label}:</span>{" "}
+                      {pickedChoice.body}
+                    </p>
+                    {pickedChoice.rationale && (
+                      <p className="mt-1 leading-6">
+                        <span className="text-[var(--text)]">Why it&apos;s wrong:</span> {pickedChoice.rationale}
+                      </p>
+                    )}
+                  </div>
+                )}
                 <p className="mt-3 text-sm text-[var(--muted)]">
                   <span className="text-[var(--correct)]">
                     Answer {correct?.label}:
@@ -388,6 +432,14 @@ export default function ExamPage() {
               </div>
             );
           })}
+          {reviewFilter !== "all" &&
+            !questions.some((q) =>
+              reviewFilter === "flagged" ? flagged.has(q.id) : answers[q.id] !== q.choices.find((c) => c.is_correct)?.id
+            ) && (
+              <p className="text-sm text-[var(--muted)]">
+                {reviewFilter === "flagged" ? "You didn't flag any questions." : "Nothing wrong. Every answer was correct."}
+              </p>
+            )}
         </div>
       </Shell>
     );
