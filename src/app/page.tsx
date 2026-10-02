@@ -203,34 +203,6 @@ export default function Home() {
 
         <FlightPath />
 
-        <section
-          id="how"
-          className="grid gap-5 border-t border-[var(--border)] py-16 sm:grid-cols-3"
-        >
-          {[
-            {
-              h: "The real test, not a lookalike",
-              p: "Three answer choices, 60 questions, two hours on the mock. Every run now includes FAA chart figures and calculations. Use it to rehearse timing and core topics; no small practice bank can predict the real score.",
-            },
-            {
-              h: "Every answer shows its receipts",
-              p: "Miss one and you get the why, the rule it comes from (14 CFR 107.51(b), not 'some forum said 400 feet'), and the FAA's own ACS code for the topic.",
-            },
-            {
-              h: "Weak spots in the FAA's language",
-              p: "The FAA reports ACS codes for missed questions. Our mock exam shows those codes too, so you can target the topics to revisit.",
-            },
-          ].map((c) => (
-            <div
-              key={c.h}
-              className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6"
-            >
-              <h3 className="font-semibold leading-snug">{c.h}</h3>
-              <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{c.p}</p>
-            </div>
-          ))}
-        </section>
-
         <section id="faq" className="border-t border-[var(--border)] py-16">
           <h2 className="text-2xl font-semibold tracking-tight">
             Taking the real thing
