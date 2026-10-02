@@ -15,7 +15,7 @@ export function VerdictRing({ level, word, label }: { level: Level; word: string
   const c = LEVEL_COLOR[level];
   const pct = level === "go" ? 100 : level === "caution" ? 62 : level === "stop" ? 28 : 50;
   return (
-    <div className="relative grid h-36 w-36 shrink-0 place-items-center sm:h-40 sm:w-40">
+    <div className="relative grid h-28 w-28 shrink-0 place-items-center sm:h-40 sm:w-40">
       <div
         className="fc-ring absolute inset-0 rounded-full"
         style={{
@@ -25,8 +25,8 @@ export function VerdictRing({ level, word, label }: { level: Level; word: string
       />
       <div className="absolute inset-[7px] rounded-full bg-[#0d0d0d]" />
       <div className="relative text-center">
-        <div className="text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--muted)]">{label}</div>
-        <div className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl" style={{ color: c }}>
+        <div className="text-[9px] font-medium uppercase tracking-[0.18em] text-[var(--muted)] sm:text-[10px]">{label}</div>
+        <div className="mt-1 text-xl font-bold tracking-tight sm:text-3xl" style={{ color: c }}>
           {word}
         </div>
       </div>

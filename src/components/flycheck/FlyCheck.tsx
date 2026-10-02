@@ -192,20 +192,20 @@ function Card({ id, title, eyebrow, children, learn, delay = 0, className = "" }
       className={`fc-card fc-rise rounded-2xl border border-white/[0.07] bg-gradient-to-b from-white/[0.035] to-white/[0.01] p-5 backdrop-blur sm:p-6 ${className}`}
       style={{ animationDelay: `${delay}ms` }}
     >
-      <header className={`flex items-start justify-between gap-4 ${open ? "mb-4" : ""}`}>
-        <div>
+      <header className={`flex items-start justify-between gap-3 ${open ? "mb-4" : ""}`}>
+        <div className="min-w-0 flex-1">
           {eyebrow && <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">{eyebrow}</p>}
-          <h2 className="mt-1 text-lg font-semibold tracking-tight">{title}</h2>
+          <h2 className="mt-1 text-lg font-semibold tracking-tight text-balance">{title}</h2>
+          {learn && (
+            <Link
+              href={`/learn/${learn.slug}`}
+              className="mt-1 inline-block text-[11px] text-[#6b6b6b] transition-colors hover:text-[var(--muted)]"
+              title={`Part 107 lesson: ${learn.label}`}
+            >
+              {learn.label} explained →
+            </Link>
+          )}
         </div>
-        {learn && (
-          <Link
-            href={`/learn/${learn.slug}`}
-            className="shrink-0 pt-1 text-[11px] text-[#6b6b6b] transition-colors hover:text-[var(--muted)]"
-            title={`Part 107 lesson: ${learn.label}`}
-          >
-            {learn.label} explained
-          </Link>
-        )}
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
@@ -596,7 +596,7 @@ export function FlyCheck({ initial, hero = true }: { initial?: GeoResult; hero?:
               {report.point.elevationFt !== null && ` · ground ${report.point.elevationFt.toLocaleString()} ft MSL`}
             </p>
             <div className="relative mt-6 grid gap-8 md:grid-cols-2">
-              <div className="flex items-center gap-5">
+              <div className="flex items-center gap-4 sm:gap-5">
                 <VerdictRing
                   level={av.level}
                   word={
@@ -608,15 +608,15 @@ export function FlyCheck({ initial, hero = true }: { initial?: GeoResult; hero?:
                   }
                   label="Airspace"
                 />
-                <div>
-                  <p className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">{av.headline}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xl font-semibold leading-tight tracking-tight text-balance sm:text-3xl">{av.headline}</p>
                   <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{av.findings[0]?.title}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-5">
+              <div className="flex items-center gap-4 sm:gap-5">
                 <VerdictRing level={cond.level} word={WX_WORD[cond.level]} label="Conditions" />
-                <div>
-                  <p className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">{WX_HEAD[cond.level]}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xl font-semibold leading-tight tracking-tight text-balance sm:text-3xl">{WX_HEAD[cond.level]}</p>
                   <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
                     {cond.findings[0]?.title ?? "No current observation nearby"}
                   </p>
@@ -1018,8 +1018,8 @@ export function FlyCheck({ initial, hero = true }: { initial?: GeoResult; hero?:
               <Card id="space" eyebrow="Space weather" title="GPS outlook" className="lg:col-span-6" delay={360}>
                 {report.space.data ? (
                   <div className="flex items-end justify-between gap-4">
-                    <div>
-                      <p className="text-4xl font-semibold tabular-nums">Kp {report.space.data.kp.toFixed(1)}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-3xl font-semibold tabular-nums sm:text-4xl">Kp {report.space.data.kp.toFixed(1)}</p>
                       <p className="mt-1 text-sm text-[var(--muted)]">
                         {report.space.data.kp >= 5
                           ? "Geomagnetic storm. GPS may wander."
