@@ -5,6 +5,8 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { type Question } from "@/lib/types";
 import { SELECT_QUESTION_COLUMNS, prepare } from "@/lib/session";
+import { loadLevel, presentAll, saveLevel, type Level } from "@/lib/difficulty";
+import { LevelPicker } from "@/components/LevelPicker";
 import {
   DRILL_SIZE,
   type SrsMap,
@@ -60,6 +62,7 @@ export default function DrillPage() {
   const [picked, setPicked] = useState<string | null>(null);
   const [praise, setPraise] = useState(0);
   const [newBadges, setNewBadges] = useState<BadgeDef[]>([]);
+  const [level, setLevel] = useState<Level>(loadLevel);
 
   useEffect(() => {
     setSrs(loadSrs());
@@ -110,13 +113,13 @@ export default function DrillPage() {
 
   const start = useCallback(() => {
     if (!pool) return;
-    const drill = buildDrill(pool, srs, DRILL_SIZE);
+    const drill = presentAll(buildDrill(pool, srs, DRILL_SIZE), level);
     setQueue(drill);
     setDrillSize(drill.length);
     setFirstTry({});
     setPicked(null);
     setPhase("run");
-  }, [pool, srs]);
+  }, [pool, srs, level]);
 
   const current = queue[0];
   const isRetry = current !== undefined && firstTry[current.slug] === false;
@@ -204,6 +207,13 @@ export default function DrillPage() {
             <Stat label="Day streak" value={String(running)} accent={running > 0} />
             <Stat label="Due today" value={String(due)} accent={due > 0} />
             <Stat label="Never seen" value={String(newCount)} />
+          </div>
+
+          <div className="mt-8">
+            <p className="mb-2 text-sm font-medium uppercase tracking-widest text-[var(--muted)]">
+              Difficulty
+            </p>
+            <LevelPicker value={level} onChange={(l) => { saveLevel(l); setLevel(l); }} />
           </div>
 
           <button

@@ -7,6 +7,8 @@ export type Choice = {
   is_correct: boolean
   rationale: string | null
   sort_order: number
+  /** Wrong choices only: 1 obvious, 2 plausible, 3 tricky. See lib/difficulty. */
+  tier?: number | null
 }
 
 export type Question = {
@@ -33,8 +35,7 @@ export type AcsArea = {
   sort_order: number
 }
 
-/** Fisher-Yates. Used for question order only; choice order stays fixed so the
- *  written rationales keep matching the letters the author assigned them. */
+/** Fisher-Yates. */
 export function shuffle<T>(input: T[]): T[] {
   const a = [...input]
   for (let i = a.length - 1; i > 0; i--) {

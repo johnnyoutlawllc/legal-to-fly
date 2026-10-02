@@ -10,6 +10,8 @@ import { areaFromElement } from "@/lib/types";
 export type MasteryItem = {
   correct: number;
   seen: number;
+  /** ms epoch of the last answer; drives fresh-first question selection. */
+  last?: number;
 };
 
 export type MasteryMap = Record<string, MasteryItem>;
@@ -43,6 +45,7 @@ export function recordAnswer(slug: string, correct: boolean): MasteryMap {
   map[slug] = {
     correct: item.correct + (correct ? 1 : 0),
     seen: item.seen + 1,
+    last: Date.now(),
   };
   saveMastery(map);
   return map;

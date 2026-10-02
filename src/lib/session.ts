@@ -1,4 +1,5 @@
 import { areaFromElement, shuffle, type Question } from "@/lib/types";
+import { loadMastery } from "@/lib/mastery";
 import {
   EXAM_CALCULATION_QUESTIONS,
   EXAM_FIGURE_QUESTIONS,
@@ -32,6 +33,15 @@ export const PASS_PERCENT = 70;
 
 export const PRACTICE_SIZE = 20;
 
+/** Shuffle, then put questions this browser has not answered (or answered
+ *  longest ago) first, so a retake draws new questions before repeats. Last
+ *  answers are bucketed by hour so one session's questions stay mixed. */
+export function freshFirst(pool: Question[]): Question[] {
+  const mastery = loadMastery();
+  const age = (q: Question) => Math.floor((mastery[q.slug]?.last ?? 0) / 3_600_000);
+  return shuffle(pool).sort((a, b) => age(a) - age(b));
+}
+
 export function buildSession(all: Question[], size: number): Question[] {
   const pools: Record<string, Question[]> = {};
   for (const q of all) {
@@ -41,7 +51,7 @@ export function buildSession(all: Question[], size: number): Question[] {
 
   const picked: Question[] = [];
   for (const [area, weight] of Object.entries(AREA_WEIGHTS)) {
-    const pool = shuffle(pools[area] ?? []);
+    const pool = freshFirst(pools[area] ?? []);
     picked.push(...pool.slice(0, Math.round(size * weight)));
   }
 
@@ -49,7 +59,7 @@ export function buildSession(all: Question[], size: number): Question[] {
   if (picked.length < size) {
     const chosen = new Set(picked.map((q) => q.id));
     picked.push(
-      ...shuffle(all.filter((q) => !chosen.has(q.id))).slice(0, size - picked.length)
+      ...freshFirst(all.filter((q) => !chosen.has(q.id))).slice(0, size - picked.length)
     );
   }
 
@@ -61,12 +71,12 @@ export function buildSession(all: Question[], size: number): Question[] {
 export function buildExamSession(all: Question[]): Question[] {
   const target: Record<string, number> = { I: 12, II: 12, III: 8, IV: 5, V: 23 };
   const selected = [
-    ...shuffle(EXAM_FIGURE_QUESTIONS).slice(0, 5),
-    ...shuffle(EXAM_CALCULATION_QUESTIONS).slice(0, 3),
-    ...shuffle(EXAM_SCENARIO_QUESTIONS).slice(0, 2),
+    ...freshFirst(EXAM_FIGURE_QUESTIONS).slice(0, 5),
+    ...freshFirst(EXAM_CALCULATION_QUESTIONS).slice(0, 3),
+    ...freshFirst(EXAM_SCENARIO_QUESTIONS).slice(0, 2),
   ];
   const chosen = new Set(selected.map((question) => question.id));
-  const available = shuffle(all.filter((question) => !chosen.has(question.id)));
+  const available = freshFirst(all.filter((question) => !chosen.has(question.id)));
   for (const question of selected) target[areaFromElement(question.acs_element_code)] -= 1;
   for (const [area, count] of Object.entries(target)) {
     const candidates = available.filter((question) => areaFromElement(question.acs_element_code) === area && !chosen.has(question.id));
@@ -89,10 +99,10 @@ export function formatClock(totalSeconds: number): string {
   return `${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
 }
 
-/** Question order is shuffled; choice order never is. The rationales refer to
- *  answers by letter, so shuffling choices would scramble the explanations. */
+/** Choices load in authored order; lib/difficulty picks, shuffles and
+ *  re-letters them per session. */
 export const SELECT_QUESTION_COLUMNS =
-  "id, slug, stem, explanation, acs_element_code, difficulty, citation, choices(id,label,body,is_correct,rationale,sort_order)";
+  "id, slug, stem, explanation, acs_element_code, difficulty, citation, choices(id,label,body,is_correct,rationale,sort_order,tier)";
 
 export function prepare(rows: unknown): Question[] {
   return ((rows ?? []) as Question[]).map((q) => ({

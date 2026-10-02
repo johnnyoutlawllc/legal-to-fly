@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { loadLevel, presentAll, saveLevel, type Level } from "@/lib/difficulty";
+import { LevelPicker } from "@/components/LevelPicker";
 import Link from "next/link";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
@@ -35,6 +37,7 @@ export default function ExamPage() {
   const [flagged, setFlagged] = useState<Set<string>>(new Set());
   const [newBadges, setNewBadges] = useState<BadgeDef[]>([]);
   const [saveStatus, setSaveStatus] = useState("");
+  const [level, setLevel] = useState<Level>(loadLevel);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
   const graded = useRef(false);
   const attemptId = useRef<string | null>(null);
@@ -71,7 +74,7 @@ export default function ExamPage() {
     attemptId.current = crypto.randomUUID();
     syncedUser.current = null;
     setSaveStatus("");
-    setQuestions(buildExamSession(pool));
+    setQuestions(presentAll(buildExamSession(pool), level));
     setAnswers({});
     setFlagged(new Set());
     setIndex(0);
@@ -79,7 +82,7 @@ export default function ExamPage() {
     setNewBadges([]);
     graded.current = false;
     setPhase("running");
-  }, [pool]);
+  }, [pool, level]);
 
   // The clock is the whole point of a mock exam. When it hits zero, you are done.
   useEffect(() => {
@@ -215,6 +218,12 @@ export default function ExamPage() {
             <li>· Unanswered questions are scored as wrong, exactly like the real test.</li>
             <li>· You get a full review with ACS codes at the end.</li>
           </ul>
+          <div className="mt-6">
+            <p className="mb-2 text-sm font-medium uppercase tracking-widest text-[var(--muted)]">
+              Difficulty
+            </p>
+            <LevelPicker value={level} onChange={(l) => { saveLevel(l); setLevel(l); }} />
+          </div>
           <button
             onClick={start}
             className="mt-8 h-12 rounded-lg bg-[var(--accent)] px-6 font-medium text-black transition-opacity hover:opacity-90"

@@ -18,6 +18,8 @@ import { claimNewBadges, type BadgeDef } from "@/lib/badges";
 import { NewBadges } from "@/components/Badges";
 import { useAuth } from "@/lib/auth";
 import { saveTestAttempt, syncTestAttempts } from "@/lib/test-attempts";
+import { LEVELS, loadLevel, presentAll, saveLevel, type Level } from "@/lib/difficulty";
+import { LevelPicker } from "@/components/LevelPicker";
 
 export default function PracticePage() {
   return (
@@ -48,6 +50,7 @@ function Practice() {
   const [results, setResults] = useState<Record<string, boolean>>({});
   const [newBadges, setNewBadges] = useState<BadgeDef[]>([]);
   const [saveStatus, setSaveStatus] = useState("");
+  const [level, setLevel] = useState<Level>(loadLevel);
   const attemptId = useRef<string | null>(null);
   const startedAt = useRef<number | null>(null);
   const saved = useRef(false);
@@ -81,7 +84,7 @@ function Practice() {
       setPool(all);
       attemptId.current = crypto.randomUUID();
       startedAt.current = Date.now();
-      setQuestions(draw(all));
+      setQuestions(presentAll(draw(all), loadLevel()));
     })();
     return () => {
       cancelled = true;
@@ -120,7 +123,7 @@ function Practice() {
   }, [finished, pool]);
 
   // Draw a fresh set from the whole bank rather than reshuffling the same 20.
-  const restart = useCallback(() => {
+  const restart = useCallback((nextLevel: Level) => {
     attemptId.current = crypto.randomUUID();
     startedAt.current = Date.now();
     saved.current = false;
@@ -130,8 +133,20 @@ function Practice() {
     setPicked(null);
     setIndex(0);
     setNewBadges([]);
-    setQuestions(draw(pool));
+    setQuestions(presentAll(draw(pool), nextLevel));
   }, [pool, draw]);
+
+  const changeLevel = useCallback(
+    (nextLevel: Level) => {
+      if (nextLevel === level) return;
+      const label = LEVELS.find((l) => l.id === nextLevel)?.label;
+      if (answeredCount > 0 && !finished && !window.confirm(`Start a new set on ${label}? This one will be discarded.`)) return;
+      saveLevel(nextLevel);
+      setLevel(nextLevel);
+      restart(nextLevel);
+    },
+    [level, answeredCount, finished, restart]
+  );
 
   const byArea = useMemo(() => {
     if (!questions) return [];
@@ -258,7 +273,14 @@ function Practice() {
             </>
           )}
 
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-8">
+            <p className="mb-2 text-sm font-medium uppercase tracking-widest text-[var(--muted)]">
+              Next set difficulty
+            </p>
+            <LevelPicker value={level} onChange={(l) => { saveLevel(l); setLevel(l); }} />
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-3">
             <Link
               href="/results"
               className="inline-flex h-11 items-center rounded-lg border border-[var(--border)] px-6 font-medium transition-colors hover:bg-[var(--surface-2)]"
@@ -266,7 +288,7 @@ function Practice() {
               View past results
             </Link>
             <button
-              onClick={restart}
+              onClick={() => restart(level)}
               className="h-11 rounded-lg bg-[var(--accent)] px-6 font-medium text-black transition-opacity hover:opacity-90"
             >
               Go again
@@ -289,6 +311,9 @@ function Practice() {
   return (
     <Shell area={area}>
       <div className="mb-6">
+        <div className="mb-4">
+          <LevelPicker value={level} onChange={changeLevel} showHint={answeredCount === 0} />
+        </div>
         <div className="flex items-center justify-between text-sm text-[var(--muted)]">
           <span>
             Question {index + 1} of {total}
