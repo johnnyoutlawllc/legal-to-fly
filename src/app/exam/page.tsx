@@ -211,7 +211,7 @@ export default function ExamPage() {
             This mock includes FAA figure references and calculations, but its
             question bank is smaller than the real test bank. Treat the score
             as practice, not a prediction of your UAG score. Also work through the{" "}
-            <a href="https://www.faa.gov/sites/faa.gov/files/training_testing/testing/test_questions/uag_questions.pdf" target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] underline underline-offset-2">FAA sample questions</a>
+            <Link href="/faa-sample" className="text-[var(--accent)] underline underline-offset-2">FAA sample questions</Link>
             {" "}with the{" "}
             <a href="https://www.faa.gov/training_testing/testing/supplements" target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] underline underline-offset-2">FAA testing supplement</a>.
           </p>
@@ -259,7 +259,7 @@ export default function ExamPage() {
           <p className="mt-4 rounded-lg border border-[var(--accent)]/50 bg-[var(--accent)]/10 p-4 text-sm leading-6">
             This mock covers some chart figures and calculations, but it is not
             a calibrated predictor of the FAA exam. Review the{" "}
-            <a href="https://www.faa.gov/sites/faa.gov/files/training_testing/testing/test_questions/uag_questions.pdf" target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] underline underline-offset-2">FAA sample questions</a>
+            <Link href="/faa-sample" className="text-[var(--accent)] underline underline-offset-2">FAA sample questions</Link>
             {" "}and their referenced figures before treating it as a readiness measure.
           </p>
           <p className="mt-3 text-sm text-[var(--muted)]">{saveStatus}</p>

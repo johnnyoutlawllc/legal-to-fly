@@ -13,6 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/drill", 0.6, "monthly"],
     ["/practice", 0.6, "monthly"],
     ["/exam", 0.6, "monthly"],
+    ["/faa-sample", 0.6, "monthly"],
     ["/acs", 0.4, "monthly"],
     ["/basics", 0.5, "monthly"],
   ];
