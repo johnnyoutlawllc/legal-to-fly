@@ -11,6 +11,7 @@ import { BADGES, type BadgeId, loadEarned } from "@/lib/badges";
 import { BadgeIcon } from "@/components/Badges";
 import { lessonsForArea } from "@/content/lessons";
 import { readLessons } from "@/lib/lesson-progress";
+import { SiteHeader } from "@/components/site/SiteHeader";
 
 /** The briefing before the questions. Clicking an area on the flight path
  *  lands here: what the area actually covers, how the FAA weights it, your
@@ -246,16 +247,7 @@ export default function StudyAreaPage() {
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-1 flex-col">
-      <header className="border-b border-[var(--border)]">
-        <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-6 py-5">
-          <Link href="/" className="text-lg font-semibold tracking-tight">
-            Legal<span className="text-[var(--accent)]">to</span>Fly
-          </Link>
-          <Link href="/" className="text-sm text-[var(--muted)] hover:text-[var(--text)]">
-            Exit
-          </Link>
-        </div>
-      </header>
+      <SiteHeader />
       <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">{children}</main>
     </div>
   );

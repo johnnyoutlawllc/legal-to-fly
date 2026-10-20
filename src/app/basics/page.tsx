@@ -11,6 +11,7 @@ import {
   markBasicsRead,
 } from "@/lib/badges";
 import { BadgeIcon, NewBadges } from "@/components/Badges";
+import { SiteHeader } from "@/components/site/SiteHeader";
 
 /** The reading unit at the head of the trail: what the certificate is, why a
  *  hobbyist needs one, and the actual mechanics of getting it. Finish the
@@ -49,16 +50,7 @@ export default function BasicsPage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <header className="border-b border-[var(--border)]">
-        <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-6 py-5">
-          <Link href="/" className="text-lg font-semibold tracking-tight">
-            Legal<span className="text-[var(--accent)]">to</span>Fly
-          </Link>
-          <Link href="/" className="text-sm text-[var(--muted)] hover:text-[var(--text)]">
-            Exit
-          </Link>
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">
         <div className="flex items-center gap-4">

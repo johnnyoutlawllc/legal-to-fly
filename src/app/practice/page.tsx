@@ -20,6 +20,7 @@ import { useAuth } from "@/lib/auth";
 import { saveTestAttempt, syncTestAttempts } from "@/lib/test-attempts";
 import { LEVELS, loadLevel, presentAll, saveLevel, type Level } from "@/lib/difficulty";
 import { LevelPicker } from "@/components/LevelPicker";
+import { Logo } from "@/components/site/Logo";
 
 export default function PracticePage() {
   return (
@@ -417,9 +418,7 @@ function Shell({
       <header className="border-b border-[var(--border)]">
         <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-6 py-5">
           <span className="flex items-center gap-3">
-            <Link href="/" className="text-lg font-semibold tracking-tight">
-              Legal<span className="text-[var(--accent)]">to</span>Fly
-            </Link>
+            <Logo size="sm" />
             {area && (
               <span className="rounded border border-[var(--accent)]/50 px-2 py-0.5 text-xs text-[var(--accent)]">
                 {AREA_TITLES[area]}

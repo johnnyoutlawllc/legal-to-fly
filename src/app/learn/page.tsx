@@ -5,6 +5,7 @@ import Link from "next/link";
 import { LESSONS } from "@/content/lessons";
 import { AREA_TITLES } from "@/lib/session";
 import { readLessons } from "@/lib/lesson-progress";
+import { SiteHeader } from "@/components/site/SiteHeader";
 
 /** Ground school index. The lessons run in a deliberate order: learn the map,
  *  then the weather, then the aircraft, then the judgment calls. Each one ends
@@ -18,16 +19,7 @@ export default function LearnPage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <header className="border-b border-[var(--border)]">
-        <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-6 py-5">
-          <Link href="/" className="text-lg font-semibold tracking-tight">
-            Legal<span className="text-[var(--accent)]">to</span>Fly
-          </Link>
-          <Link href="/" className="text-sm text-[var(--muted)] hover:text-[var(--text)]">
-            Exit
-          </Link>
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">
         <p className="text-sm uppercase tracking-widest text-[var(--muted)]">

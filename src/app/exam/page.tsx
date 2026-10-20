@@ -22,6 +22,7 @@ import { NewBadges } from "@/components/Badges";
 import { useAuth } from "@/lib/auth";
 import { saveTestAttempt, syncTestAttempts } from "@/lib/test-attempts";
 import { FAA_SUPPLEMENT_URL } from "@/content/exam-figure-questions";
+import { Logo } from "@/components/site/Logo";
 
 type Phase = "loading" | "ready" | "running" | "done" | "error";
 
@@ -587,9 +588,7 @@ function Shell({ children }: { children: React.ReactNode }) {
     <div className="flex flex-1 flex-col">
       <header className="border-b border-[var(--border)]">
         <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-6 py-5">
-          <Link href="/" className="text-lg font-semibold tracking-tight">
-            Legal<span className="text-[var(--accent)]">to</span>Fly
-          </Link>
+          <Logo size="sm" />
           <Link
             href="/"
             className="text-sm text-[var(--muted)] hover:text-[var(--text)]"

@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { loadExams } from "@/lib/mastery";
 import { AREA_TITLES, PASS_PERCENT, formatClock } from "@/lib/session";
 import { loadTestAttempts, saveTestAttempt, syncTestAttempts, type TestAttempt } from "@/lib/test-attempts";
+import { SiteHeader } from "@/components/site/SiteHeader";
 
 export default function ResultsPage() {
   const { user, loading } = useAuth();
@@ -79,14 +80,7 @@ export default function ResultsPage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <header className="border-b border-[var(--border)]">
-        <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-3 px-6 py-5">
-          <Link href="/" className="text-lg font-semibold tracking-tight">
-            Legal<span className="text-[var(--accent)]">to</span>Fly
-          </Link>
-          <AuthButton />
-        </div>
-      </header>
+      <SiteHeader />
       <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-10 sm:py-14">
         <p className="text-sm font-medium uppercase tracking-widest text-[var(--accent)]">Your progress</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Test results</h1>

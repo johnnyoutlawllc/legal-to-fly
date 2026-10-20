@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { AuthProvider } from "@/lib/auth";
 import { WebsiteTracker } from "@/components/WebsiteTracker";
+import { SiteFooter } from "@/components/site/SiteFooter";
 import "./globals.css";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
@@ -18,13 +19,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <AuthProvider>{children}</AuthProvider>
-        <div className="border-t border-[var(--border)] py-4 text-center text-xs text-[var(--muted)]">
-          A{" "}
-          <a href="https://dataday.studio" className="underline hover:text-white">
-            DataDay.Studio
-          </a>{" "}
-          project
-        </div>
+        <SiteFooter />
         <WebsiteTracker />
       </body>
     </html>

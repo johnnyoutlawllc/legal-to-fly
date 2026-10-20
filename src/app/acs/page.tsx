@@ -8,6 +8,7 @@ import {
   ACS_TOP_TASKS,
   standardUrl,
 } from "@/content/acs-resources";
+import { SiteHeader } from "@/components/site/SiteHeader";
 
 export const metadata: Metadata = {
   title: "FAA Airman Certification Standards | Legal to Fly",
@@ -34,16 +35,7 @@ export default function AcsPage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <header className="border-b border-[var(--border)]">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-6 py-5">
-          <Link href="/" className="text-lg font-semibold tracking-tight">
-            Legal<span className="text-[var(--accent)]">to</span>Fly
-          </Link>
-          <Link href="/learn" className="text-sm text-[var(--muted)] hover:text-[var(--text)]">
-            Ground school
-          </Link>
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-10 sm:py-14">
         <p className="text-sm font-medium uppercase tracking-widest text-[var(--accent)]">

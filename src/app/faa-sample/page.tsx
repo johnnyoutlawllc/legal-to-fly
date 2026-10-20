@@ -7,6 +7,7 @@ import { FAA_SUPPLEMENT_URL } from "@/content/exam-figure-questions";
 import { FAA_SAMPLE_PDF_URL, FAA_SAMPLE_QUESTIONS } from "@/content/faa-sample-questions";
 import { PASS_PERCENT } from "@/lib/session";
 import { shuffle, type Question } from "@/lib/types";
+import { Logo } from "@/components/site/Logo";
 
 type Phase = "ready" | "running" | "done";
 type Filter = "all" | "wrong";
@@ -279,9 +280,7 @@ function Shell({ children }: { children: React.ReactNode }) {
     <div className="flex flex-1 flex-col">
       <header className="border-b border-[var(--border)]">
         <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-6 py-5">
-          <Link href="/" className="text-lg font-semibold tracking-tight">
-            Legal<span className="text-[var(--accent)]">to</span>Fly
-          </Link>
+          <Logo size="sm" />
           <Link href="/" className="text-sm text-[var(--muted)] hover:text-[var(--text)]">
             Exit
           </Link>

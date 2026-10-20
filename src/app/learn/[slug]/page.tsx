@@ -7,6 +7,7 @@ import { LESSONS, lessonBySlug } from "@/content/lessons";
 import { AREA_TITLES } from "@/lib/session";
 import { isLessonRead, markLessonRead } from "@/lib/lesson-progress";
 import LessonBody from "@/components/LessonBody";
+import { SiteHeader } from "@/components/site/SiteHeader";
 
 /** One ground-school lesson. Reaching the bottom is what marks it read; the
  *  exits push you into the question bank for the lesson's area, because the
@@ -108,19 +109,7 @@ export default function LessonPage() {
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-1 flex-col">
-      <header className="border-b border-[var(--border)]">
-        <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-6 py-5">
-          <Link href="/" className="text-lg font-semibold tracking-tight">
-            Legal<span className="text-[var(--accent)]">to</span>Fly
-          </Link>
-          <Link
-            href="/learn"
-            className="text-sm text-[var(--muted)] hover:text-[var(--text)]"
-          >
-            All lessons
-          </Link>
-        </div>
-      </header>
+      <SiteHeader />
       <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">{children}</main>
     </div>
   );
