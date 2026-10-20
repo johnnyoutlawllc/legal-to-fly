@@ -449,7 +449,7 @@ function HeroPreview() {
     { body: "15 foot-pounds", out: true },
   ];
   return (
-    <div className="relative mx-auto w-full max-w-md lg:max-w-none" aria-hidden>
+    <div className="relative mx-auto mb-10 w-full max-w-md sm:mb-16 lg:mb-0 lg:max-w-none" aria-hidden>
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[0_40px_120px_-40px_rgba(255,107,53,0.35)]">
         <div className="flex items-center justify-between text-xs text-[var(--muted)]">
           <span className="flex items-center gap-2">
@@ -477,7 +477,7 @@ function HeroPreview() {
         <p className="mt-4 font-mono text-[11px] text-[var(--muted)]">14 CFR 107.120</p>
       </div>
 
-      <div className="absolute -bottom-8 -left-4 hidden w-64 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4 shadow-2xl shadow-black/60 sm:block lg:-left-10">
+      <div className="absolute -bottom-16 -left-4 hidden w-64 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4 shadow-2xl shadow-black/60 sm:block lg:-left-10">
         <p className="text-[11px] uppercase tracking-widest text-[var(--muted)]">Mock exam · ACS codes missed</p>
         <div className="mt-3 flex flex-wrap gap-1.5">
           {["UA.II.A.K2", "UA.III.B.K1c", "UA.V.B.K6a ×2"].map((c) => (
