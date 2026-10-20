@@ -16,16 +16,19 @@ import { FAA_SAMPLE_QUESTIONS } from "@/content/faa-sample-questions";
 
 type Phase = "loading" | "ready" | "running" | "error";
 type Mode = "auto" | "manual";
-type SpeedId = "relaxed" | "normal" | "fast";
 type Deck = "all" | "faa" | "charts" | "I" | "II" | "III" | "IV" | "V";
 
-/** Seconds on the question, seconds on the answer, plus reading time per
- *  word of explanation so a long explanation is not cut off. */
-const SPEEDS: { id: SpeedId; label: string; question: number; answer: number; perWord: number }[] = [
-  { id: "relaxed", label: "Relaxed", question: 10, answer: 5, perWord: 0.25 },
-  { id: "normal", label: "Normal", question: 6, answer: 3, perWord: 0.17 },
-  { id: "fast", label: "Fast", question: 3, answer: 2, perWord: 0.1 },
-];
+/** The slider sets seconds on the question side. The answer side gets half
+ *  that plus reading time per word of explanation, so a long explanation is
+ *  not cut off. Chart cards get extra time to find the spot on the figure. */
+const MIN_SECONDS = 5;
+const MAX_SECONDS = 15;
+const PER_WORD = 0.17;
+const FIGURE_BONUS = 4;
+
+/** A card is a question with its choices shuffled and a random order in
+ *  which to knock out the wrong ones. */
+type Card = Question & { elim: string[] };
 
 const DECKS: { id: Deck; label: string }[] = [
   { id: "all", label: "Everything" },
@@ -42,16 +45,23 @@ const BUILT_IN = [...EXAM_FIGURE_QUESTIONS, ...EXAM_CALCULATION_QUESTIONS, ...EX
 const SETTINGS_KEY = "ltf_flashcards_v1";
 const TICK_MS = 100;
 
-type Settings = { deck: Deck; mode: Mode; speed: SpeedId; showChoices: boolean; showWhy: boolean };
-const DEFAULTS: Settings = { deck: "all", mode: "auto", speed: "normal", showChoices: false, showWhy: true };
+type Settings = { deck: Deck; mode: Mode; seconds: number; showChoices: boolean; eliminate: boolean; showWhy: boolean };
+const DEFAULTS: Settings = { deck: "all", mode: "auto", seconds: 8, showChoices: false, eliminate: false, showWhy: true };
 
 function loadSettings(): Settings {
   if (typeof window === "undefined") return DEFAULTS;
   try {
-    return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? "{}") };
+    const s = { ...DEFAULTS, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? "{}") };
+    const seconds = Number(s.seconds);
+    return { ...s, seconds: Number.isFinite(seconds) ? Math.min(MAX_SECONDS, Math.max(MIN_SECONDS, seconds)) : DEFAULTS.seconds };
   } catch {
     return DEFAULTS;
   }
+}
+
+function toCard(q: Question): Card {
+  const choices = shuffle(q.choices).map((c, i) => ({ ...c, label: "ABC"[i], sort_order: i }));
+  return { ...q, choices, elim: shuffle(choices.filter((c) => !c.is_correct)).map((c) => c.id) };
 }
 
 function deckOf(deck: Deck, bank: Question[]): Question[] {
@@ -66,11 +76,12 @@ export default function FlashcardsPage() {
   const [error, setError] = useState<string | null>(null);
   const [bank, setBank] = useState<Question[]>([]);
   const [settings, setSettings] = useState<Settings>(loadSettings);
-  const [cards, setCards] = useState<Question[]>([]);
+  const [cards, setCards] = useState<Card[]>([]);
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [paused, setPaused] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+  const [manualElim, setManualElim] = useState(0);
   const elapsedRef = useRef(0);
 
   useEffect(() => {
@@ -100,36 +111,58 @@ export default function FlashcardsPage() {
       return next;
     });
 
-  const speed = SPEEDS.find((s) => s.id === settings.speed) ?? SPEEDS[1];
   const card = cards[index];
+  const showChoices = settings.showChoices || settings.eliminate;
   const duration = useMemo(() => {
     if (!card) return 0;
-    if (!flipped) return speed.question + (settings.showChoices ? 2 : 0) + (card.figure ? 4 : 0);
+    if (!flipped) return settings.seconds + (card.figure ? FIGURE_BONUS : 0);
     const words = settings.showWhy ? card.explanation.split(/\s+/).length : 0;
-    return speed.answer + words * speed.perWord;
-  }, [card, flipped, speed, settings.showChoices, settings.showWhy]);
+    return settings.seconds / 2 + words * PER_WORD;
+  }, [card, flipped, settings.seconds, settings.showWhy]);
+
+  // Elimination: in automatic mode the wrong answers fade out on a schedule
+  // (with two wrong answers, at one third and two thirds of the question
+  // time), so only the right one is left when the timer runs out. In manual
+  // mode each tap knocks one out.
+  const wrongCount = card?.elim.length ?? 0;
+  const eliminated =
+    !settings.eliminate || !card
+      ? 0
+      : flipped
+        ? wrongCount
+        : settings.mode === "manual"
+          ? manualElim
+          : Math.min(wrongCount, Math.floor((elapsed / duration) * (wrongCount + 1)));
+  const gone = new Set(card?.elim.slice(0, eliminated));
 
   const go = useCallback(
     (to: number) => {
       setIndex(((to % cards.length) + cards.length) % cards.length);
       setFlipped(false);
+      setManualElim(0);
       elapsedRef.current = 0;
       setElapsed(0);
     },
     [cards.length],
   );
 
+  const stepping = settings.mode === "manual" && settings.eliminate && !flipped && manualElim < wrongCount;
   const flip = useCallback(() => {
+    if (stepping) {
+      setManualElim((n) => n + 1);
+      return;
+    }
     elapsedRef.current = 0;
     setElapsed(0);
     if (flipped) go(index + 1);
     else setFlipped(true);
-  }, [flipped, go, index]);
+  }, [stepping, flipped, go, index]);
 
   const start = () => {
-    setCards(shuffle(deckOf(settings.deck, bank)));
+    setCards(shuffle(deckOf(settings.deck, bank)).map(toCard));
     setIndex(0);
     setFlipped(false);
+    setManualElim(0);
     setPaused(false);
     elapsedRef.current = 0;
     setElapsed(0);
@@ -224,16 +257,27 @@ export default function FlashcardsPage() {
           </Setting>
 
           {settings.mode === "auto" && (
-            <Setting label="Speed">
-              <Toggle options={SPEEDS.map((s) => [s.id, s.label] as [SpeedId, string])} value={settings.speed} onChange={(s) => update({ speed: s })} />
+            <Setting label="Time per question">
+              <SecondsSlider value={settings.seconds} onChange={(seconds) => update({ seconds })} />
               <p className="mt-2 text-sm text-[var(--muted)]">
-                About {speed.question}s on the question, then {speed.answer}s plus reading time on the answer.
+                {settings.seconds}s on the question (more on chart cards), then {settings.seconds / 2}s plus reading time on the answer.
               </p>
             </Setting>
           )}
 
           <div className="mt-6 space-y-3 text-sm">
-            <Check checked={settings.showChoices} onChange={(v) => update({ showChoices: v })} label="Show the answer choices on the question side" />
+            <Check
+              checked={settings.eliminate}
+              onChange={(v) => update({ eliminate: v })}
+              label={
+                settings.mode === "auto"
+                  ? "Eliminate wrong answers one at a time, so only the right one is left when time runs out"
+                  : "Eliminate wrong answers one at a time: each tap knocks one out"
+              }
+            />
+            {!settings.eliminate && (
+              <Check checked={settings.showChoices} onChange={(v) => update({ showChoices: v })} label="Show the answer choices on the question side" />
+            )}
             <Check checked={settings.showWhy} onChange={(v) => update({ showWhy: v })} label="Show the explanation with the answer" />
           </div>
 
@@ -290,13 +334,27 @@ export default function FlashcardsPage() {
           </figure>
         )}
 
-        {settings.showChoices && !flipped && (
+        {showChoices && !flipped && (
           <ul className="mt-5 space-y-2">
-            {card.choices.map((c) => (
-              <li key={c.id} className="rounded-lg border border-[var(--border)] px-4 py-2.5">
-                {c.body}
-              </li>
-            ))}
+            {card.choices.map((c) => {
+              const out = gone.has(c.id);
+              const last = settings.eliminate && eliminated === wrongCount && c.is_correct;
+              return (
+                <li
+                  key={c.id}
+                  className={`flex gap-3 rounded-lg border px-4 py-2.5 transition-all duration-700 ${
+                    out
+                      ? "border-transparent text-[var(--muted)] line-through opacity-25"
+                      : last
+                        ? "border-[var(--correct)] bg-[var(--correct)]/10"
+                        : "border-[var(--border)]"
+                  }`}
+                >
+                  <span className="font-mono text-sm text-[var(--muted)]">{c.label}</span>
+                  <span className="flex-1">{c.body}</span>
+                </li>
+              );
+            })}
           </ul>
         )}
 
@@ -308,7 +366,11 @@ export default function FlashcardsPage() {
           </>
         )}
 
-        {settings.mode === "manual" && <p className="mt-6 text-xs text-[var(--muted)]">{flipped ? "Tap for the next card" : "Tap to see the answer"}</p>}
+        {settings.mode === "manual" && (
+          <p className="mt-6 text-xs text-[var(--muted)]">
+            {flipped ? "Tap for the next card" : stepping ? "Tap to knock out a wrong answer" : "Tap to see the answer"}
+          </p>
+        )}
       </div>
 
       <div className="mt-5 flex flex-wrap items-center gap-3">
@@ -321,26 +383,35 @@ export default function FlashcardsPage() {
           </button>
         )}
         <button onClick={flip} className="h-11 rounded-lg bg-[var(--accent)] px-6 font-medium text-black transition-opacity hover:opacity-90">
-          {flipped ? "Next" : "Show answer"}
+          {flipped ? "Next" : stepping ? "Eliminate one" : "Show answer"}
         </button>
         {settings.mode === "auto" && (
-          <div className="ml-auto flex gap-1" role="group" aria-label="Speed">
-            {SPEEDS.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => update({ speed: s.id })}
-                aria-pressed={settings.speed === s.id}
-                className={`h-9 rounded-lg border px-3 text-sm transition-colors ${
-                  settings.speed === s.id ? "border-[var(--accent)] bg-[var(--accent)] text-black" : "border-[var(--border)] text-[var(--muted)] hover:text-[var(--text)]"
-                }`}
-              >
-                {s.label}
-              </button>
-            ))}
+          <div className="w-full sm:ml-auto sm:w-64">
+            <SecondsSlider value={settings.seconds} onChange={(seconds) => update({ seconds })} />
           </div>
         )}
       </div>
     </Shell>
+  );
+}
+
+function SecondsSlider({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  return (
+    <label className="flex items-center gap-3">
+      <span className="shrink-0 text-xs text-[var(--muted)]">{MIN_SECONDS}s</span>
+      <input
+        type="range"
+        min={MIN_SECONDS}
+        max={MAX_SECONDS}
+        step={1}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        aria-label="Seconds per question"
+        className="h-2 w-full cursor-pointer accent-[var(--accent)]"
+      />
+      <span className="shrink-0 text-xs text-[var(--muted)]">{MAX_SECONDS}s</span>
+      <span className="w-9 shrink-0 text-right font-mono tabular-nums text-[var(--accent)]">{value}s</span>
+    </label>
   );
 }
 
