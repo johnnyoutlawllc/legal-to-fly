@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FlightPath } from "@/components/FlightPath";
+import { HeroShowcase } from "@/components/site/HeroShowcase";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import {
   IconArrow,
@@ -210,35 +211,14 @@ export default function Home() {
               <p className="mt-5 text-sm text-[var(--muted)]">Free. No account needed. Sign in only to sync across devices.</p>
             </div>
 
-            <HeroPreview />
-          </div>
-        </section>
-
-        {/* Proof strip: facts about the product, no invented numbers. */}
-        <section className="border-y border-[var(--border)] bg-[var(--surface)]/50">
-          <div className="mx-auto grid w-full max-w-6xl grid-cols-2 gap-px px-4 sm:px-6 lg:grid-cols-4">
-            {[
-              ["176", "ACS elements mapped, straight from FAA-S-ACS-10B"],
-              ["60 / 2h", "Mock exam questions and time, same as the real test"],
-              ["3", "Answer choices per question, like the real test"],
-              ["100%", "of answers carry a regulation or handbook citation"],
-            ].map(([n, l]) => (
-              <div key={l} className="px-2 py-7 sm:px-4">
-                <p className="text-2xl font-semibold tracking-tight sm:text-3xl">{n}</p>
-                <p className="mt-1 text-xs leading-5 text-[var(--muted)] sm:text-sm">{l}</p>
-              </div>
-            ))}
+            <HeroShowcase />
           </div>
         </section>
 
         {/* Study tools */}
         <section id="tools" className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6">
-          <SectionHead
-            eyebrow="Study tools"
-            title="Every way to study, in one place."
-            body="Use the one that fits the time you have: ten minutes on the couch, a hands-free review, or a full two-hour dress rehearsal."
-          />
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <SectionHead eyebrow="Study tools" />
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {TOOLS.map((t) => (
               <ToolCard key={t.href} tool={t} />
             ))}
@@ -381,12 +361,12 @@ export default function Home() {
   );
 }
 
-function SectionHead({ eyebrow, title, body }: { eyebrow: string; title: string; body: string }) {
+function SectionHead({ eyebrow, title, body }: { eyebrow: string; title?: string; body?: string }) {
   return (
     <div className="max-w-2xl">
       <p className="text-xs font-semibold uppercase tracking-widest text-[var(--accent)]">{eyebrow}</p>
-      <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h2>
-      <p className="mt-4 text-lg leading-8 text-[var(--muted)]">{body}</p>
+      {title && <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h2>}
+      {body && <p className="mt-4 text-lg leading-8 text-[var(--muted)]">{body}</p>}
     </div>
   );
 }
@@ -436,57 +416,6 @@ function Feature({
       <span className="mt-5 inline-block rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 font-mono text-xs text-[var(--accent)]">
         {sample}
       </span>
-    </div>
-  );
-}
-
-/** A static picture of the product: one card mid-way through elimination, and
- *  the mock exam's missed-codes report. Illustrative, not live data. */
-function HeroPreview() {
-  const choices = [
-    { body: "25 foot-pounds", out: true },
-    { body: "11 foot-pounds", right: true },
-    { body: "15 foot-pounds", out: true },
-  ];
-  return (
-    <div className="relative mx-auto mb-10 w-full max-w-md sm:mb-16 lg:mb-0 lg:max-w-none" aria-hidden>
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[0_40px_120px_-40px_rgba(255,107,53,0.35)]">
-        <div className="flex items-center justify-between text-xs text-[var(--muted)]">
-          <span className="flex items-center gap-2">
-            <IconCards className="h-4 w-4 text-[var(--accent)]" /> Flash cards
-          </span>
-          <span className="font-mono text-[var(--accent)]">UA.I.E.K3b</span>
-        </div>
-        <div className="mt-4 h-1 overflow-hidden rounded-full bg-[var(--surface-2)]">
-          <div className="h-full w-[88%] bg-[var(--accent)]" />
-        </div>
-        <p className="mt-5 text-lg leading-7">What is the kinetic energy limit that defines eligibility for Category 2 operations?</p>
-        <ul className="mt-5 space-y-2 text-sm">
-          {choices.map((c, i) => (
-            <li
-              key={c.body}
-              className={`flex gap-3 rounded-lg border px-4 py-2.5 ${
-                c.right ? "border-[var(--correct)] bg-[var(--correct)]/10" : "border-transparent text-[var(--muted)] line-through opacity-30"
-              }`}
-            >
-              <span className="font-mono text-[var(--muted)]">{"ABC"[i]}</span>
-              {c.body}
-            </li>
-          ))}
-        </ul>
-        <p className="mt-4 font-mono text-[11px] text-[var(--muted)]">14 CFR 107.120</p>
-      </div>
-
-      <div className="absolute -bottom-16 -left-4 hidden w-64 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4 shadow-2xl shadow-black/60 sm:block lg:-left-10">
-        <p className="text-[11px] uppercase tracking-widest text-[var(--muted)]">Mock exam · ACS codes missed</p>
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {["UA.II.A.K2", "UA.III.B.K1c", "UA.V.B.K6a ×2"].map((c) => (
-            <span key={c} className="rounded border border-[var(--border)] bg-[var(--bg)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--accent)]">
-              {c}
-            </span>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
