@@ -13,6 +13,7 @@ import {
   FAA_SUPPLEMENT_URL,
 } from "@/content/exam-figure-questions";
 import { FAA_SAMPLE_QUESTIONS } from "@/content/faa-sample-questions";
+import { loadLevel, present, type Level } from "@/lib/difficulty";
 
 type Phase = "loading" | "ready" | "running" | "error";
 type Mode = "auto" | "manual";
@@ -74,9 +75,11 @@ function loadSettings(): Settings {
   }
 }
 
-function toCard(q: Question): Card {
-  const choices = shuffle(q.choices).map((c, i) => ({ ...c, label: "ABC"[i], sort_order: i }));
-  return { ...q, choices, elim: shuffle(choices.filter((c) => !c.is_correct)).map((c) => c.id) };
+/** Same three choices practice would show at the saved difficulty level
+ *  (some questions store extra wrong answers for Difficult), shuffled. */
+function toCard(q: Question, level: Level): Card {
+  const shown = present(q, level);
+  return { ...shown, elim: shuffle(shown.choices.filter((c) => !c.is_correct)).map((c) => c.id) };
 }
 
 function deckOf(deck: Deck, bank: Question[]): Question[] {
@@ -179,7 +182,8 @@ export default function FlashcardsPage() {
   }, [stepping, flipped, go, index]);
 
   const start = () => {
-    setCards(shuffle(deckOf(settings.deck, bank)).map(toCard));
+    const level = loadLevel();
+    setCards(shuffle(deckOf(settings.deck, bank)).map((q) => toCard(q, level)));
     setIndex(0);
     setFlipped(false);
     setManualElim(0);
