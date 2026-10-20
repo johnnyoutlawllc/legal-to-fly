@@ -26,14 +26,13 @@ export default function LearnPage() {
           Ground school
         </p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-          The lessons behind the questions
+          Ground school
         </h1>
         <p className="mt-4 max-w-2xl leading-7 text-[var(--muted)]">
-          Eight short reads that teach the skills the exam actually tests:
-          reading a sectional chart, decoding a METAR, and the judgment
-          vocabulary the FAA wants. Every lesson names its ACS tasks and the
-          rules it comes from, and ends by sending you into the questions for
-          that area.
+          Eight short lessons, including reading a sectional chart, decoding a
+          METAR and aeronautical decision-making. Each lesson lists its ACS
+          tasks and source rules, and ends with practice questions for that
+          area.
         </p>
         <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
           Need the official standard? Browse the{" "}

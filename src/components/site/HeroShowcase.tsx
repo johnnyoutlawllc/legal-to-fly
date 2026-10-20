@@ -193,7 +193,7 @@ function ProgressSlide() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="font-semibold">Your flight path</p>
-          <p className="mt-0.5 text-xs text-[var(--muted)]">Turn every bar orange and you are ready.</p>
+          <p className="mt-0.5 text-xs text-[var(--muted)]">Your progress in the five test areas.</p>
         </div>
         <div className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-center">
           <p className="text-lg font-semibold leading-6">71%</p>

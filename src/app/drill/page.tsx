@@ -193,9 +193,8 @@ export default function DrillPage() {
               : "Five minutes. Ten questions."}
           </h1>
           <p className="mt-3 max-w-xl leading-7 text-[var(--muted)]">
-            The drill remembers every question you answer and brings the ones
-            you miss back right before you would forget them. Show up daily and
-            the schedule does the studying for you.
+            Ten questions a day. Questions you miss come back on a
+            spaced-repetition schedule.
           </p>
           {!user && (
             <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--muted)]">

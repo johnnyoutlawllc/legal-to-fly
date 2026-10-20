@@ -4,7 +4,7 @@ import { Faq, FlyFooter, FlyHeader, HowItWorks, PlacesGrid } from "@/components/
 
 const TITLE = "Can I Fly My Drone Here? Free No-Fly Zone & Airspace Check";
 const DESCRIPTION =
-  "Enter any U.S. address or use your location to see if you can legally fly a drone there: FAA airspace and LAANC limits, no-fly zones, temporary flight restrictions, nearby airports, and the weather, in plain English. Free.";
+  "Enter any U.S. address or use your location to see if you can legally fly a drone there: FAA airspace and LAANC limits, no-fly zones, temporary flight restrictions, nearby airports, and the weather. Free.";
 
 export const metadata: Metadata = {
   title: `${TITLE} | Legal to Fly`,

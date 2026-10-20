@@ -234,7 +234,7 @@ function Practice() {
             {correctCount} of {total} correct.{" "}
             <span className={passed ? "text-[var(--correct)]" : "text-[var(--wrong)]"}>
               {passed
-                ? "That is a passing score on the real thing."
+                ? "70% or better passes the real test."
                 : `The real test needs ${PASS_PERCENT}%. Run it again.`}
             </span>
           </p>

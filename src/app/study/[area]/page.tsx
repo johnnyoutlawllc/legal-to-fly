@@ -171,7 +171,7 @@ export default function StudyAreaPage() {
 
       {tasks.length > 0 && (
         <div className="mt-5 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6">
-          <h2 className="font-semibold">The FAA&apos;s own outline</h2>
+          <h2 className="font-semibold">ACS tasks</h2>
           <p className="mt-1 text-sm text-[var(--muted)]">
             Tasks from the Airman Certification Standards for this area. Every
             question you see maps to one of these.

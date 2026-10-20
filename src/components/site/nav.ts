@@ -12,7 +12,7 @@ export const STUDY: NavItem[] = [
 
 export const LEARN: NavItem[] = [
   { href: "/learn", label: "Ground school", blurb: "Lessons for every area of the test" },
-  { href: "/basics", label: "Part 107 basics", blurb: "The rules in one sitting" },
+  { href: "/basics", label: "Part 107 basics", blurb: "What the certificate is and how to get it" },
   { href: "/acs", label: "ACS library", blurb: "Every code the FAA tests" },
 ];
 

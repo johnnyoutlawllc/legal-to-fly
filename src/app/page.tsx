@@ -73,7 +73,7 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
     a: (
       <>
         You wait 14 calendar days and pay the fee again. The FAA hands you a report listing the ACS codes you missed,
-        and every question on this site carries those same codes, so you can study exactly what got you.
+        and every question on this site carries those same codes.
       </>
     ),
   },
@@ -122,7 +122,7 @@ const TOOLS: Tool[] = [
     href: "/drill",
     icon: IconDrill,
     title: "Daily drill",
-    body: "Ten questions a day. Spaced repetition brings back what you missed right before you would forget it.",
+    body: "Ten questions a day. Missed questions come back on a spaced-repetition schedule.",
     tags: ["Spaced repetition", "Day streaks"],
   },
   {
@@ -136,7 +136,7 @@ const TOOLS: Tool[] = [
     href: "/flashcards",
     icon: IconCards,
     title: "Flash cards",
-    body: "Hands-free quick study. Set the question and answer timers, and watch the wrong answers drop away one by one.",
+    body: "Set the question and answer timers and let the cards run, or flip them yourself.",
     tags: ["Auto or manual", "5 to 30s timers", "Eliminate mode"],
   },
   {
@@ -158,15 +158,15 @@ const TOOLS: Tool[] = [
     icon: IconBook,
     title: "Ground school",
     body: "Short lessons for every area of the test, from airspace and weather to loading, Remote ID and night operations.",
-    tags: ["All five areas", "Plain English"],
+    tags: ["All five areas", "Eight lessons"],
   },
 ];
 
 const PLAN: { step: string; title: string; body: string; href: string; cta: string }[] = [
   { step: "1", title: "Learn the rules", body: "Read the ground school once through. An evening or two.", href: "/learn", cta: "Ground school" },
-  { step: "2", title: "Drill every day", body: "Ten questions a day keeps everything fresh until test day.", href: "/drill", cta: "Today's drill" },
-  { step: "3", title: "Master the charts", body: "Sectional and METAR questions are where most points go missing.", href: "/faa-sample", cta: "FAA questions" },
-  { step: "4", title: "Pass the mock", body: "Clearing 85% on the mock exam twice in a row is a good sign you are ready.", href: "/exam", cta: "Mock exam" },
+  { step: "2", title: "Drill every day", body: "Ten questions a day until test day.", href: "/drill", cta: "Today's drill" },
+  { step: "3", title: "Work the charts", body: "Sectional chart and METAR questions.", href: "/faa-sample", cta: "FAA questions" },
+  { step: "4", title: "Pass the mock", body: "Score 85% or better on the mock exam twice in a row.", href: "/exam", cta: "Mock exam" },
   { step: "5", title: "Book the test", body: "Get your FTN on IACRA, then book a seat at a PSI testing center.", href: "https://faa.psiexams.com", cta: "PSI" },
 ];
 
@@ -248,28 +248,24 @@ export default function Home() {
         {/* What makes it different */}
         <section className="border-t border-[var(--border)] bg-[var(--surface)]/40">
           <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6">
-            <SectionHead
-              eyebrow="Built for precision"
-              title="Study in the FAA's own vocabulary."
-              body="Most prep courses sell more video. We went the other way: every question is traceable to the standard the test is written from."
-            />
-            <div className="mt-12 grid gap-4 md:grid-cols-3">
+            <SectionHead eyebrow="Every question" />
+            <div className="mt-6 grid gap-4 md:grid-cols-3">
               <Feature
                 icon={IconCode}
-                title="ACS codes on everything"
-                body="When you miss a question on the real test, the FAA prints its ACS code on your report. Every question here carries the same code, so your weak spots come out in the FAA's terms."
+                title="ACS code"
+                body="The same code the FAA prints on your test report for any question you miss."
                 sample="UA.II.A.K1b"
               />
               <Feature
                 icon={IconCite}
-                title="A citation on every answer"
-                body="Each answer names the rule or handbook it comes from, so you can check it yourself and so the bank stays correct when the FAA amends a rule."
+                title="Citation"
+                body="The regulation or handbook section the answer comes from."
                 sample="14 CFR 107.41"
               />
               <Feature
                 icon={IconTarget}
-                title="Practice like the real thing"
-                body="Three answer choices, not four, because the real exam gives three. Chart questions use the figures from the FAA testing supplement you are handed at the test center."
+                title="Three choices"
+                body="Three answer choices, same as the real test. Chart questions use the figures from the FAA testing supplement."
                 sample="FAA-CT-8080-2H"
               />
             </div>
@@ -278,8 +274,8 @@ export default function Home() {
 
         {/* Study plan */}
         <section className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6">
-          <SectionHead eyebrow="Study plan" title="From zero to certified." body="Short daily sessions beat cramming. This is the order that works." />
-          <ol className="mt-12 grid gap-4 md:grid-cols-5">
+          <SectionHead eyebrow="Study plan" />
+          <ol className="mt-6 grid gap-4 md:grid-cols-5">
             {PLAN.map((p) => {
               const external = p.href.startsWith("http");
               const cls =
@@ -316,10 +312,10 @@ export default function Home() {
         <section id="faq" className="border-t border-[var(--border)]">
           <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[0.8fr_1.2fr]">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-[var(--accent)]">Taking the real thing</p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-tight">Straight answers about the test.</h2>
+              <p className="text-xs font-semibold uppercase tracking-widest text-[var(--accent)]">FAQ</p>
+              <h2 className="mt-3 text-3xl font-semibold tracking-tight">Taking the test</h2>
               <p className="mt-4 leading-7 text-[var(--muted)]">
-                Where to book it, what it costs, what to bring, and what happens after. With the official links.
+                Where to book it, what it costs, what to bring, and what happens after.
               </p>
             </div>
             <div className="space-y-3">
@@ -341,9 +337,9 @@ export default function Home() {
           <div className="relative overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--surface)] px-6 py-14 text-center sm:px-12">
             <div aria-hidden className="fc-glow pointer-events-none absolute -bottom-40 left-1/2 h-[420px] w-[720px] -translate-x-1/2" />
             <div className="relative">
-              <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Ten questions. Right now.</h2>
+              <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Start today&apos;s drill</h2>
               <p className="mx-auto mt-4 max-w-xl leading-7 text-[var(--muted)]">
-                Today&apos;s drill takes about five minutes and starts your streak. No sign-up.
+                Ten questions, about five minutes. No sign-up.
               </p>
               <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
                 <Link href="/drill" className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-[var(--accent)] px-6 font-semibold text-black hover:opacity-90">

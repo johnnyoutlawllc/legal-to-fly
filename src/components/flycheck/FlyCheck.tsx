@@ -484,9 +484,8 @@ export function FlyCheck({ initial, hero = true }: { initial?: GeoResult; hero?:
             Can I fly my drone <span className="fc-gradient-text">here?</span>
           </h1>
           <p className="fc-rise mt-5 max-w-2xl text-lg leading-8 text-[var(--muted)]" style={{ animationDelay: "120ms" }}>
-            Type an address or use your location. We check FAA airspace, no-fly zones, temporary flight
-            restrictions, nearby airports and the weather, and tell you in plain English whether you can fly
-            there right now.
+            Type an address or use your location to check FAA airspace, no-fly zones, temporary flight
+            restrictions, nearby airports and the weather.
           </p>
           </>
           )}

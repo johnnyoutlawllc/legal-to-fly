@@ -63,9 +63,7 @@ export default function BasicsPage() {
           </div>
         </div>
         <p className="mt-4 leading-7 text-[var(--muted)]">
-          Five minutes of reading before the first question. What the
-          certificate is, why your drone hobby needs it, and exactly what
-          getting it involves.
+          What the certificate is, who needs it, and how to get it.
         </p>
 
         <div className="mt-10 space-y-8">
@@ -81,8 +79,8 @@ export default function BasicsPage() {
 
           <Section title="Why you need one">
             <p>
-              The line is simple: flying purely for fun is recreational, and
-              anything else is not. The moment a flight helps a business, yours
+              Flying purely for fun is recreational, and anything else is
+              not. The moment a flight helps a business, yours
               or anyone else&apos;s, you need the certificate. Selling photos,
               shooting a roof for a realtor, inspecting a cell tower, posting
               monetized footage. Even flying for free counts if the footage
@@ -90,9 +88,8 @@ export default function BasicsPage() {
             </p>
             <p className="mt-3">
               Fly without it where it&apos;s required and the FAA can fine you
-              per flight. With it, you are the legal option that clients can
-              actually hire, and most real gigs (and their insurers) will ask
-              to see the card.
+              per flight. Most clients and their insurers will ask to see the
+              card.
             </p>
           </Section>
 
@@ -108,8 +105,8 @@ export default function BasicsPage() {
               </li>
             </ul>
             <p className="mt-3">
-              No flight hours, no checkride, no medical certificate. The
-              written test is the whole gate, which is why studying works.
+              No flight hours, no checkride and no medical certificate are
+              required.
             </p>
           </Section>
 
@@ -140,11 +137,10 @@ export default function BasicsPage() {
 
           <Section title="What the test covers">
             <p>
-              Five areas of operation, and that is exactly how this site is
-              organized: Regulations, Airspace, Weather, Loading and
-              Performance, and Operations. The flight path on the home page
-              tracks your mastery of each one, and the mock exam mirrors the
-              real thing question for question in format.
+              Five areas of operation: Regulations, Airspace, Weather, Loading
+              and Performance, and Operations. The flight path on the home page
+              tracks your progress in each, and the mock exam uses the same
+              format as the real test.
             </p>
           </Section>
         </div>

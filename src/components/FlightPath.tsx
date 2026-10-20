@@ -73,8 +73,7 @@ export function FlightPath() {
         <div>
           <h2 className="text-2xl font-semibold tracking-tight">Your flight path</h2>
           <p className="mt-2 text-[var(--muted)]">
-            Five areas, exactly what the FAA tests. Turn every bar orange and
-            you are ready.
+            Your progress in the five areas of the test.
           </p>
         </div>
         <div className="flex gap-3">
