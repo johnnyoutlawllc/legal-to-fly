@@ -36,6 +36,7 @@ ${PLACES.map((p) => `- [Can I fly a drone in ${placeLabel(p)}?](${base}/can-i-fl
 ${LESSONS.map((l) => `- [${l.title}](${base}/learn/${l.slug})`).join("\n")}
 - [Mock exam](${base}/exam): 60 questions, 2 hours, 70% to pass, like the real FAA test.
 - [FAA Sample Questions](${base}/faa-sample): the FAA's published UAG sample questions plus one from the FAA's PSI practice test, with answers checked against the official key and explanations.
+- [Flash cards](${base}/flashcards): quick-study cards from the whole bank, automatic with three speeds or manual.
 - [Daily drill](${base}/drill)
 
 ## Data sources

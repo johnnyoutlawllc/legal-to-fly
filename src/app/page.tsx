@@ -199,6 +199,12 @@ export default function Home() {
             >
               FAA Sample Questions
             </Link>
+            <Link
+              href="/flashcards"
+              className="inline-flex h-12 items-center justify-center rounded-lg border border-[var(--border)] px-6 font-medium transition-colors hover:bg-[var(--surface)]"
+            >
+              Flash cards
+            </Link>
           </div>
 
           <p className="mt-4 max-w-2xl text-sm leading-6 text-[var(--muted)]">
