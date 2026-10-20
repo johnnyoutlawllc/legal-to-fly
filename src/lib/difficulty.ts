@@ -48,10 +48,11 @@ export function present(q: Question, level: Level): Question {
   const tricky = wrong.filter((c) => tierOf(c) === 3);
 
   // Difficult: a near miss plus the best of the rest, never an obvious one.
-  // Within each tier, prefer wrong answers about as long as the right one:
-  // the correct choice is the longest in most of the bank, which made
-  // "pick the longest" a winning strategy. Top up from whatever is left so
-  // there are always three choices.
+  // Within each tier, prefer wrong answers about as long as the right one,
+  // so "pick the longest" never pays. The bank was rebalanced for length on
+  // 2026-10-19; new questions should keep the correct choice from standing
+  // out by length too. Top up from whatever is left so there are always
+  // three choices.
   const target = correct[0]?.body.length ?? 0;
   const byLength = (cs: Choice[]) =>
     shuffle(cs).sort((a, b) => Math.abs(a.body.length - target) - Math.abs(b.body.length - target));
