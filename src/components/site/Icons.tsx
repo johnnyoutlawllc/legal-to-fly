@@ -1,4 +1,4 @@
-/** Line icons, 24px grid, drawn with currentColor so they take the text colour. */
+/** Line icons, 24px grid, drawn with currentColor so they take the text color. */
 type P = { className?: string };
 
 function Svg({ className = "h-5 w-5", children }: P & { children: React.ReactNode }) {

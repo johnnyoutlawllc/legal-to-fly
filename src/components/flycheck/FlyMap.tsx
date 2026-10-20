@@ -158,7 +158,7 @@ export default function FlyMap({ lat, lng, overlays, airports, style, visible, o
       const lf = (mod.default ?? mod) as typeof Leaflet;
       L.current = lf;
       // The wheel zooms whenever the pointer is over the map. minZoom keeps a
-      // stray scroll from zooming out to an empty grey continent.
+      // stray scroll from zooming out to an empty gray continent.
       const m = lf.map(el.current, {
         zoomControl: false,
         attributionControl: true,

@@ -46,7 +46,7 @@ export async function pullAndMergeSrs(local: SrsMap, pool: Question[]): Promise<
       interval: row.interval_days,
       reps: row.repetitions,
       due: row.due_at.slice(0, 10),
-      // seen/lapses are local-only colour; approximate when adopting.
+      // seen/lapses are local-only color; approximate when adopting.
       seen: local[slug]?.seen ?? Math.max(1, row.repetitions),
       lapses: local[slug]?.lapses ?? 0,
     };
