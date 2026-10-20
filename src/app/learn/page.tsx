@@ -29,7 +29,7 @@ export default function LearnPage() {
           Ground school
         </h1>
         <p className="mt-4 max-w-2xl leading-7 text-[var(--muted)]">
-          Nine short lessons, including reading a sectional chart, decoding a
+          Eleven short lessons, including the Part 107 rules, reading a sectional chart, decoding a
           METAR, Remote ID and aeronautical decision-making. Each lesson lists its ACS
           tasks and source rules, and ends with practice questions for that
           area.

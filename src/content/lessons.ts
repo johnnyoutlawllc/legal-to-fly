@@ -1011,10 +1011,188 @@ The RPIC must be in condition to fly; these are the testable degraders:
 `,
   },
   {
+    slug: "part-107-rules",
+    title: "The Part 107 Rules",
+    area: "I",
+    order: 8,
+    minutes: 7,
+    acs: ["UA.I.A","UA.I.B","UA.I.D"],
+    cites: ["14 CFR 107.1-107.9","14 CFR 107.12-107.61","14 CFR 107.200-107.205","14 CFR 48.15","14 CFR 48.205","14 CFR 91.17"],
+    body: `Regulations are the biggest single area on the exam. Most questions test a
+number (55 pounds, 400 feet, 87 knots, 10 days) or who is responsible. This
+lesson walks Part 107 in the order the rule is written.
+
+## Who Part 107 covers (§107.1, §107.3)
+
+A small unmanned aircraft weighs **less than 55 pounds on takeoff, including
+everything on board or attached**: battery, gimbal, payload, any strapped-on
+accessory.
+
+Part 107 does **not** apply to:
+
+- Air carrier operations
+- Recreational flying under 49 U.S.C. 44809
+- Operations under a section 333 or 44807 exemption
+- Operations a person elects to fly under Part 91 with an airworthiness
+  certificate
+
+## Registration (Part 48)
+
+- **Every aircraft flown under Part 107 must be registered, whatever it
+  weighs.** The 0.55 pound exception applies only to recreational flying.
+  A 0.4 pound drone on a paid shoot needs a registration number.
+- The number goes on an **external surface** of the aircraft. Inside the
+  battery compartment stopped counting in February 2019.
+
+## Certificates, records and reporting
+
+- **Getting the certificate (§107.61):** at least 16, able to read, speak,
+  write and understand English, in a condition to fly safely, pass the initial
+  knowledge test, clear TSA vetting. No flight test, no medical certificate.
+- **Carry it (§107.7):** the certificate must be in your physical possession
+  and readily accessible. Present it on request to the FAA, the NTSB, any
+  federal, state or local law enforcement officer, or the TSA. A photo on a
+  phone left in the truck does not count.
+- **Inspection (§107.7):** on FAA request, make the certificate and any
+  required document, record or report available.
+- **Falsification (§107.5):** a false or altered record, like a changed
+  training date, is grounds to suspend or revoke any certificate, rating,
+  authorization or waiver you hold.
+
+### Safety event reporting (§107.9)
+
+Report to the FAA **within 10 calendar days** of an operation that causes:
+
+- Serious injury or loss of consciousness, or
+- Damage to property other than the drone, unless the repair costs **$500
+  or less** (or the fair market value is $500 or less in a total loss)
+
+Damage to your own aircraft never counts. A $640 bill to fix a parked car is
+reportable. The section was renamed from "Accident reporting" in December
+2022; older material uses the old name.
+
+::check
+Q: Your drone causes $640 of damage to a parked car. Nobody is hurt. What is required?
+- Nothing, because nobody was injured
+- A report to the FAA within 10 calendar days *
+- A report to the FAA within 10 business days
+Why: Property damage over $500, other than to the drone itself, is reportable. The window is 10 calendar days, not business days.
+::
+
+## The crew
+
+- **Remote pilot in command (rPIC):** directly responsible for, and the
+  **final authority** on, the operation (§107.19). A client paying for the
+  flight cannot overrule the rPIC.
+- **Uncertificated person at the controls (§107.12):** allowed only under
+  direct supervision of an rPIC who can **immediately take direct control**.
+- **Preflight condition check (§107.15):** the rPIC checks the system is safe
+  before each flight.
+- **Medical condition (§107.17):** no medical certificate exists, so the duty is
+  self-grounding. If you know or have reason to know a condition (a migraine
+  that blurs your vision) would interfere, you may not fly or serve as visual
+  observer.
+- **Alcohol (§107.27, §91.17):** not within **8 hours** of drinking, and not
+  at **0.04 percent** blood alcohol or more. Both have to be true. One beer at
+  10 p.m. and a 7 a.m. launch is legal if you are below 0.04.
+- **Emergencies (§107.21):** the rPIC may deviate from any Part 107 rule to
+  the extent needed. A written report is due only if the FAA asks for one.
+- **One aircraft at a time (§107.35)**, as pilot, rPIC or visual observer.
+  Swarms need a waiver.
+
+## How you fly
+
+- **Visual line of sight (§107.31):** unaided eyes, with corrective lenses
+  (glasses or contacts) only. Binoculars and the camera feed can be used in
+  addition, never instead. Automated missions are allowed if you keep the
+  drone in sight and can take over at any time.
+- **Visual observer (§107.33):** the rPIC, the person at the controls and the
+  observer keep **effective communication at all times**. Any method that
+  works is fine.
+- **Careless or reckless (§107.23):** low passes over a crowded beach. Dropping
+  an object is allowed if it creates **no undue hazard** to people or
+  property.
+- **Moving vehicles (§107.25):** from a moving car or boat only over a
+  **sparsely populated area** and not carrying others' property for hire.
+  From a moving aircraft, never.
+- **Hazardous material (§107.36):** never. This is the one prohibition that
+  cannot be waived.
+- **Right of way (§107.37):** the drone yields to **all aircraft**, every
+  time, and does not pass over, under or ahead of one unless well clear.
+- **Over people (§107.39):** always allowed over someone directly
+  participating, under a covered structure, or inside a stationary vehicle.
+  Everyone else requires Category 1, 2, 3 or 4.
+- **Carrying property for pay:** total weight under 55 pounds, within visual
+  line of sight, not from a moving vehicle, within one state.
+- **Transponder (§107.52)** and **ADS-B Out (§107.53):** off, unless the FAA
+  authorizes them.
+
+## Airspace and restrictions
+
+- **Controlled airspace (§107.41):** Class B, C, D, and the surface area of
+  Class E for an airport need **prior ATC authorization**, usually through
+  LAANC.
+- **Airports (§107.43):** do not interfere with traffic at any airport,
+  heliport or seaplane base.
+- **Restricted and prohibited areas (§107.45):** permission from the
+  **using or controlling agency**. ATC cannot grant it.
+- **TFRs (§107.47):** a LAANC authorization does not override a TFR. The TFR
+  wins.
+- **Preflight assessment (§107.49):** local weather, airspace and flight
+  restrictions, people and property below, ground hazards. Brief everyone
+  taking part.
+
+## The limits (§107.51)
+
+| Limit | Value |
+|---|---|
+| Groundspeed | **87 knots (100 mph)**, groundspeed, not airspeed |
+| Altitude | **400 ft AGL**, or 400 ft above a structure while within 400 ft of it |
+| Visibility | **3 statute miles** from the control station |
+| Below clouds | **500 ft** |
+| Horizontal from clouds | **2,000 ft** |
+
+A 700 foot tower lets you climb to **1,100 ft AGL**, but only inside the
+400 foot radius. Drift outside it and the ceiling drops back to 400 ft AGL.
+
+::check
+Q: You are photographing a 700-foot tower. What is the highest you may legally fly?
+- 400 feet AGL
+- 1,100 feet AGL, within a 400-foot radius of the tower *
+- 1,100 feet AGL anywhere within a mile of the tower
+Why: §107.51(b) allows 400 feet above the structure's top while you stay within 400 feet of it. Outside that radius the 400 ft AGL ceiling applies.
+::
+
+## Night and twilight (§107.29)
+
+- Night operations need **anti-collision lighting visible for 3 statute
+  miles** and a pilot who passed the knowledge test or training after April 6,
+  2021. No waiver needed.
+- Civil twilight (outside Alaska) is the 30 minutes before official sunrise
+  and the 30 minutes after official sunset. The same lighting rule applies.
+- The rPIC may dim the lights if that is safer, but may never turn them off.
+
+## Waivers (§107.200-107.205)
+
+Apply through **FAA DroneZone**, describing the operation and showing it can be
+done safely under the waiver's terms. Many operating rules can be waived:
+visual line of sight, operations over people, the 400 foot ceiling, one aircraft
+per pilot. The **hazardous material prohibition (§107.36) cannot**.
+
+::check
+Q: Which Part 107 rule may NOT be waived?
+- Visual line of sight
+- The prohibition on carrying hazardous material *
+- The 400-foot altitude limit
+Why: §107.205 lists the waivable sections, and §107.36 is not among them. Line of sight and altitude are both on the list.
+::
+`,
+  },
+  {
     slug: "remote-id",
     title: "Remote ID and ADS-B",
     area: "I",
-    order: 8,
+    order: 9,
     minutes: 4,
     acs: ["UA.I.F","UA.I.B.K28"],
     cites: ["14 CFR 89.105-89.125","14 CFR 89.205","14 CFR 89.305","14 CFR 89.315","14 CFR 107.53"],
@@ -1108,10 +1286,86 @@ Why: §89.125 says ADS-B Out and transponders cannot be used to comply with Remo
 `,
   },
   {
+    slug: "maintenance",
+    title: "Maintenance and Preflight Inspection",
+    area: "V",
+    order: 10,
+    minutes: 3,
+    acs: ["UA.V.F"],
+    cites: ["14 CFR 107.15","14 CFR 107.29","14 CFR 107.49","14 CFR 107.160","AC 107-2"],
+    body: `Part 107 has no maintenance rules in the manned-aviation sense: no mechanic
+certificate, no required logbook format. What it has is §107.15: the remote
+pilot in command must not fly a drone that is not in a condition for safe
+operation. Everything below is how you meet that.
+
+## Who may do the work
+
+**Anyone.** Part 107 imposes no maintenance certification requirement. The rPIC
+still owns the result, because the rPIC signs off on the aircraft before every
+flight.
+
+## Basic maintenance
+
+- Follow the **manufacturer's** scheduled maintenance and replacement guidance.
+- Replace **life-limited parts** such as propellers and batteries on schedule,
+  not after they fail. These two fail most often and do the most damage when
+  they do.
+- Watch battery health and cycle count.
+- Keep the aircraft clean, dry and free of debris.
+- Keep **firmware** current, because it changes flight control, geofencing and
+  battery behavior. Update well before a job, never the morning of it: a new
+  release can change behavior you have not tested.
+
+## Preflight inspection (§107.49)
+
+| Check | What you are looking for |
+|---|---|
+| Airframe and mounts | Cracks or damage |
+| Propellers | **Cracks, chips, nicks, warping, secure attachment** |
+| Battery | Condition and charge |
+| Control station and link | Working, with a good connection |
+| Payload | Securely attached |
+| Night only | Anti-collision lights working and visible for **3 statute miles** |
+
+A small chip can unbalance a propeller, and the vibration can grow into a
+failure and loss of control. Find it on the ground.
+
+::check
+Q: What should you look for on propellers during preflight?
+- Only that they spin freely
+- Cracks, chips, nicks, warping, and secure attachment *
+- Dust on the leading edge
+Why: Propellers take constant cyclic stress, so any crack, chip, nick or warp can grow into a failure in flight. They also have to be firmly attached.
+::
+
+## Records
+
+The FAA recommends keeping **dated records of maintenance, repairs and part
+replacement**. No format is required. Records show which parts fail and how
+often, which turns surprise failures into scheduled replacements. After an
+incident they show the aircraft was maintained.
+
+## Operations over people: the Declaration of Compliance
+
+For Category 2 and 3 aircraft, the **manufacturer, designer or modifier**
+submits the Declaration of Compliance (§107.160), not the pilot. The pilot
+confirms the aircraft is on an FAA-accepted declaration and carries the right
+label before flying over people.
+
+::check
+Q: Who submits the Declaration of Compliance for a Category 2 aircraft?
+- The remote pilot in command
+- The manufacturer, designer, or modifier of the aircraft *
+- The owner of the property being flown over
+Why: §107.160 puts the declaration on whoever produces, designs or modifies the aircraft. The pilot's job is to check it is on an accepted declaration and labeled.
+::
+`,
+  },
+  {
     slug: "exam-day",
     title: "Exam Day and the Under-Taught Topics",
     area: "I",
-    order: 9,
+    order: 11,
     minutes: 3,
     acs: ["UA.I.C","UA.I.E"],
     cites: ["14 CFR 107.7","14 CFR 107.39","14 CFR 107.57"],

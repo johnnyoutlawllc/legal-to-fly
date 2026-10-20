@@ -158,7 +158,7 @@ const TOOLS: Tool[] = [
     icon: IconBook,
     title: "Ground school",
     body: "Short lessons for every area of the test, from airspace and weather to loading, Remote ID and night operations.",
-    tags: ["All five areas", "Nine lessons"],
+    tags: ["All five areas", "Eleven lessons"],
   },
 ];
 
