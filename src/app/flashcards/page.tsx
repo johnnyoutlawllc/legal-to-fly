@@ -15,6 +15,7 @@ import {
 import { FAA_SAMPLE_QUESTIONS } from "@/content/faa-sample-questions";
 import { loadLevel, present, type Level } from "@/lib/difficulty";
 import { Logo } from "@/components/site/Logo";
+import { pauseSpeaking, speak, speechSupported, stopSpeaking, useVoices } from "@/lib/speech";
 
 type Phase = "loading" | "ready" | "running" | "error";
 type Mode = "auto" | "manual";
@@ -59,8 +60,33 @@ const SETTINGS_KEY = "ltf_flashcards_v1";
 const TICK_MS = 100;
 
 /** `seconds` is the question time (its key predates the answer slider). */
-type Settings = { deck: Deck; mode: Mode; seconds: number; answerSeconds: number; showChoices: boolean; eliminate: boolean; showWhy: boolean };
-const DEFAULTS: Settings = { deck: "all", mode: "auto", seconds: 15, answerSeconds: 10, showChoices: false, eliminate: false, showWhy: true };
+type Settings = {
+  deck: Deck;
+  mode: Mode;
+  seconds: number;
+  answerSeconds: number;
+  showChoices: boolean;
+  eliminate: boolean;
+  showWhy: boolean;
+  /** Read each side aloud. In automatic mode the side's timer starts once
+   *  reading finishes, so speech never races the eliminations. */
+  readAloud: boolean;
+  voice: string;
+  rate: number;
+};
+const DEFAULTS: Settings = {
+  deck: "all",
+  mode: "auto",
+  seconds: 15,
+  answerSeconds: 10,
+  showChoices: false,
+  eliminate: false,
+  showWhy: true,
+  readAloud: false,
+  voice: "",
+  rate: 1,
+};
+const RATE_RANGE: [number, number] = [0.7, 1.6];
 
 function loadSettings(): Settings {
   if (typeof window === "undefined") return DEFAULTS;
@@ -70,6 +96,7 @@ function loadSettings(): Settings {
       ...s,
       seconds: clamp(s.seconds, QUESTION_RANGE, DEFAULTS.seconds),
       answerSeconds: clamp(s.answerSeconds, ANSWER_RANGE, DEFAULTS.answerSeconds),
+      rate: clamp(s.rate, RATE_RANGE, DEFAULTS.rate),
     };
   } catch {
     return DEFAULTS;
@@ -101,7 +128,12 @@ export default function FlashcardsPage() {
   const [paused, setPaused] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [manualElim, setManualElim] = useState(0);
+  const [speaking, setSpeaking] = useState(false);
   const elapsedRef = useRef(0);
+  const speakingRef = useRef(false);
+  const speechId = useRef(0);
+  const voices = useVoices();
+  const canSpeak = voices.length > 0 || speechSupported();
 
   useEffect(() => {
     let cancelled = false;
@@ -203,9 +235,44 @@ export default function FlashcardsPage() {
     durationRef.current = duration;
     flipRef.current = flip;
   }, [duration, flip]);
+  // Read the visible side aloud whenever it changes. The id guards against a
+  // cancelled utterance's callback landing after the next card has started.
+  const voice = voices.find((v) => v.voiceURI === settings.voice) ?? voices[0];
+  const passages = useMemo(() => {
+    if (!card) return [];
+    if (!flipped) return [card.stem, ...(showChoices ? card.choices.map((c) => `${c.label}. ${c.body}`) : [])];
+    const right = card.choices.find((c) => c.is_correct);
+    return [`Answer: ${right?.body ?? ""}`, ...(settings.showWhy ? [card.explanation] : [])];
+  }, [card, flipped, showChoices, settings.showWhy]);
+  const readAloud = phase === "running" && settings.readAloud;
+  const readSide = useCallback(() => {
+    const id = ++speechId.current;
+    speakingRef.current = true;
+    speak(passages, { voice, rate: settings.rate }, () => {
+      if (id !== speechId.current) return;
+      speakingRef.current = false;
+      setSpeaking(false);
+    });
+    queueMicrotask(() => id === speechId.current && speakingRef.current && setSpeaking(true));
+  }, [passages, voice, settings.rate]);
+  useEffect(() => {
+    if (!readAloud) {
+      speechId.current++;
+      speakingRef.current = false;
+      stopSpeaking();
+      return;
+    }
+    readSide();
+  }, [readAloud, readSide]);
+  useEffect(() => () => stopSpeaking(), []);
+  useEffect(() => {
+    if (readAloud) pauseSpeaking(paused);
+  }, [readAloud, paused]);
+
   useEffect(() => {
     if (!auto) return;
     const t = setInterval(() => {
+      if (speakingRef.current) return;
       elapsedRef.current += TICK_MS / 1000;
       if (durationRef.current > 0 && elapsedRef.current >= durationRef.current) flipRef.current();
       else setElapsed(elapsedRef.current);
@@ -302,7 +369,58 @@ export default function FlashcardsPage() {
               <Check checked={settings.showChoices} onChange={(v) => update({ showChoices: v })} label="Show the answer choices on the question side" />
             )}
             <Check checked={settings.showWhy} onChange={(v) => update({ showWhy: v })} label="Show the explanation with the answer" />
+            {canSpeak && (
+              <Check
+                checked={settings.readAloud}
+                onChange={(v) => update({ readAloud: v })}
+                label={
+                  settings.mode === "auto"
+                    ? "Read questions and answers aloud (each timer starts once reading finishes)"
+                    : "Read questions and answers aloud"
+                }
+              />
+            )}
           </div>
+
+          {canSpeak && settings.readAloud && (
+            <div className="mt-4 space-y-3 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4">
+              <label className="flex flex-col gap-2 text-sm sm:flex-row sm:items-center">
+                <span className="w-16 shrink-0 text-xs text-[var(--muted)]">Voice</span>
+                <select
+                  value={voice?.voiceURI ?? ""}
+                  onChange={(e) => update({ voice: e.target.value })}
+                  className="h-10 w-full min-w-0 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3"
+                >
+                  {voices.length === 0 && <option value="">Device default</option>}
+                  {voices.map((v) => (
+                    <option key={v.voiceURI} value={v.voiceURI}>
+                      {v.name} ({v.lang})
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex items-center gap-3">
+                <span className="w-16 shrink-0 text-xs text-[var(--muted)]">Speed</span>
+                <input
+                  type="range"
+                  min={RATE_RANGE[0]}
+                  max={RATE_RANGE[1]}
+                  step={0.1}
+                  value={settings.rate}
+                  onChange={(e) => update({ rate: Number(e.target.value) })}
+                  aria-label="Reading speed"
+                  className="h-2 w-full cursor-pointer accent-[var(--accent)]"
+                />
+                <span className="w-10 shrink-0 text-right font-mono tabular-nums text-[var(--accent)]">{settings.rate.toFixed(1)}×</span>
+              </label>
+              <button
+                onClick={() => speak(["Refer to Figure 22. What is the floor of the Class C shelf? 1,300 feet MSL."], { voice, rate: settings.rate }, () => {})}
+                className="h-9 rounded-lg border border-[var(--border)] px-4 text-sm transition-colors hover:bg-[var(--surface)]"
+              >
+                Test the voice
+              </button>
+            </div>
+          )}
 
           <button onClick={start} disabled={count === 0} className="mt-8 h-12 rounded-lg bg-[var(--accent)] px-6 font-medium text-black transition-opacity hover:opacity-90 disabled:opacity-40">
             Start
@@ -315,12 +433,28 @@ export default function FlashcardsPage() {
 
   const correct = card.choices.find((c) => c.is_correct);
   const pct = duration ? Math.min(100, (elapsed / duration) * 100) : 0;
+  const reading = readAloud && speaking;
 
   return (
     <Shell>
-      <div className="mb-4 flex items-center justify-between text-sm text-[var(--muted)]">
-        <span>
+      <div className="mb-4 flex items-center justify-between gap-3 text-sm text-[var(--muted)]">
+        <span className="flex items-center gap-3">
           Card {index + 1} of {cards.length}
+          {settings.readAloud && (
+            <button
+              onClick={readSide}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs transition-colors ${
+                reading ? "border-[var(--accent)] text-[var(--accent)]" : "border-[var(--border)] hover:text-[var(--text)]"
+              }`}
+              aria-label="Read this side again"
+            >
+              <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M2.5 6v4h2.5L8.5 13V3L5 6H2.5Z" />
+                <path d={reading ? "M11 5.5a3.5 3.5 0 0 1 0 5M12.8 3.8a6 6 0 0 1 0 8.4" : "M11 5.5a3.5 3.5 0 0 1 0 5"} />
+              </svg>
+              {reading ? "Reading" : "Read again"}
+            </button>
+          )}
         </span>
         <button onClick={() => setPhase("ready")} className="hover:text-[var(--text)]">
           Settings
