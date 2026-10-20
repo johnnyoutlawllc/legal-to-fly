@@ -1011,10 +1011,107 @@ The RPIC must be in condition to fly; these are the testable degraders:
 `,
   },
   {
+    slug: "remote-id",
+    title: "Remote ID and ADS-B",
+    area: "I",
+    order: 8,
+    minutes: 4,
+    acs: ["UA.I.F","UA.I.B.K28"],
+    cites: ["14 CFR 89.105-89.125","14 CFR 89.205","14 CFR 89.305","14 CFR 89.315","14 CFR 107.53"],
+    body: `Remote ID is a digital license plate. Your drone broadcasts who it is and
+where it is, and anyone nearby with a phone app can receive it. Every drone
+that has to be registered has to meet the rule, and under Part 107 every drone
+has to be registered.
+
+## Three ways to comply (§89.105)
+
+1. **Standard Remote ID**: built into the aircraft by the manufacturer. Most
+   new drones have it.
+2. **Broadcast module**: a small add-on that gives an older drone Remote ID.
+3. **Fly inside a FRIA** (FAA-Recognized Identification Area) with no Remote ID
+   at all.
+
+## What gets broadcast
+
+| | Standard Remote ID (§89.305) | Broadcast module (§89.315) |
+|---|---|---|
+| Aircraft identity | Serial number or session ID | Module serial number |
+| Aircraft position, altitude, speed | Yes | Yes |
+| Second location | **Control station** (where you stand) | **Takeoff point** |
+| Emergency status | **Yes** | **No** |
+| Time mark | Yes | Yes |
+| Beyond visual line of sight | Allowed with a waiver | **Never** |
+
+The two exam favorites: a module reports the **takeoff location**, not the
+pilot's location, and only standard Remote ID broadcasts **emergency status**.
+
+- The broadcast goes out by radio straight from the aircraft. No internet or
+  cell coverage needed.
+- A standard Remote ID drone tests itself before takeoff, tells you the
+  result, and will not take off if Remote ID is not working. It broadcasts from
+  takeoff to shutdown.
+- If the broadcast stops in flight, **land as soon as practicable**. That
+  means a safe landing spot, not finishing the job.
+- The serial number goes on your FAA registration: the aircraft's for standard
+  Remote ID, the **module's** for a broadcast module.
+
+## FRIAs
+
+A FRIA is a mapped area where drones without Remote ID may fly. The drone and
+the pilot both stay inside the boundary, and the pilot keeps the drone in
+sight. Only two kinds of applicant may request one: an FAA-recognized
+community-based organization (like a model aircraft club) or an educational
+institution. A commercial operator cannot.
+
+The only other way to fly without Remote ID is an FAA authorization for
+aeronautical research or to show compliance with regulations (§89.120).
+
+::check
+Q: What does a Remote ID broadcast module report that standard Remote ID does not?
+- The location of the control station
+- The takeoff location *
+- Emergency status
+Why: A module reports where the drone took off. Standard Remote ID reports where the pilot is standing, plus emergency status, which a module does not send.
+::
+
+## ADS-B: the manned-aircraft system
+
+ADS-B (Automatic Dependent Surveillance-Broadcast) is how manned aircraft
+report themselves to air traffic control and to each other.
+
+- **ADS-B Out** is a transmitter. About once a second it broadcasts the
+  aircraft's GPS position, altitude, speed and identity. Most manned aircraft
+  must carry it in busier airspace.
+- **ADS-B In** is a receiver. It shows the broadcasts from nearby aircraft on
+  a screen. Some drones have it built in to warn you about manned traffic.
+
+**§107.53: a drone may not fly with ADS-B Out in transmit mode** unless the FAA
+authorizes it. Thousands of drones transmitting would clutter the frequencies
+that pilots and controllers depend on. Receiving with ADS-B In is fine.
+
+**§89.125: ADS-B Out and transponders do not count as Remote ID.** Remote ID is
+a separate, low-power broadcast meant for people on the ground.
+
+| | Drone may use it? | Counts as Remote ID? |
+|---|---|---|
+| ADS-B In (receive) | Yes | No |
+| ADS-B Out (transmit) | No, unless authorized | No |
+| Remote ID | Required | Yes |
+
+::check
+Q: May you use ADS-B Out to meet the Remote ID requirement?
+- Yes, if a transponder is also installed
+- Yes, for operations above 400 feet
+- No *
+Why: §89.125 says ADS-B Out and transponders cannot be used to comply with Remote ID, and §107.53 bars transmitting ADS-B Out under Part 107 anyway.
+::
+`,
+  },
+  {
     slug: "exam-day",
     title: "Exam Day and the Under-Taught Topics",
     area: "I",
-    order: 8,
+    order: 9,
     minutes: 3,
     acs: ["UA.I.C","UA.I.E"],
     cites: ["14 CFR 107.7","14 CFR 107.39","14 CFR 107.57"],
@@ -1126,6 +1223,20 @@ notify the FAA within 30 days. Keep the certificate on you when flying.
 
 export const lessonBySlug = (slug: string) =>
   LESSONS.find((l) => l.slug === slug);
+
+/** The lesson that teaches an ACS element code, matching the most specific
+ *  entry in `acs` (a task like UA.I.F or a single element like UA.I.B.K28). */
+export const lessonForCode = (code: string) => {
+  let best: Lesson | undefined;
+  let len = 0;
+  for (const l of LESSONS)
+    for (const a of l.acs)
+      if ((code === a || code.startsWith(a + ".")) && a.length > len) {
+        best = l;
+        len = a.length;
+      }
+  return best;
+};
 
 export const lessonsForArea = (area: string) =>
   LESSONS.filter((l) => l.area === area).sort((a, b) => a.order - b.order);

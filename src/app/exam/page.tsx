@@ -22,6 +22,7 @@ import { NewBadges } from "@/components/Badges";
 import { useAuth } from "@/lib/auth";
 import { saveTestAttempt, syncTestAttempts } from "@/lib/test-attempts";
 import { FAA_SUPPLEMENT_URL } from "@/content/exam-figure-questions";
+import { lessonForCode } from "@/content/lessons";
 import { Logo } from "@/components/site/Logo";
 
 type Phase = "loading" | "ready" | "running" | "done" | "error";
@@ -429,6 +430,20 @@ export default function ExamPage() {
                   <span className="rounded border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 font-mono text-[var(--accent)]">
                     {q.acs_element_code}
                   </span>
+                  {(() => {
+                    const lesson = lessonForCode(q.acs_element_code);
+                    return (
+                      lesson && (
+                        <Link
+                          href={`/learn/${lesson.slug}`}
+                          target="_blank"
+                          className="rounded border border-[var(--accent)]/40 px-2 py-1 text-[var(--accent)] hover:bg-[var(--accent)]/10"
+                        >
+                          Read more: {lesson.title} ↗
+                        </Link>
+                      )
+                    );
+                  })()}
                 </div>
               </div>
             );
