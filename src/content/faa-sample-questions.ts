@@ -1,8 +1,10 @@
 import type { Question } from "@/lib/types";
 
 /** The FAA's published UAG sample questions (dated 8/10/2021), verbatim.
- *  The FAA publishes no answer key or explanations; the answers and the
- *  explanations below are ours, written against 14 CFR and FAA-CT-8080-2H. */
+ *  The PDF has no answer key. Every answer below was checked against the key
+ *  in the FAA's official PSI practice test (UAG Self-Assessment) on
+ *  2026-10-19, and all match. Explanations are ours. Question 47 appears on
+ *  the PSI practice test but not in the PDF. */
 export const FAA_SAMPLE_PDF_URL =
   "https://www.faa.gov/sites/faa.gov/files/training_testing/testing/test_questions/uag_questions.pdf";
 
@@ -242,4 +244,8 @@ export const FAA_SAMPLE_QUESTIONS: Question[] = [
     ["you may fly your drone in the TFR since your company is sponsoring a team at the race.", "the TFR applies to all aircraft you may not fly in the area without a Certificate of Waiver or Authorization.", "flying your drone is allowed if you notify all non-participating people of the closed course UA operation."], "B",
     "A TFR applies to every aircraft, drones included. Sponsoring a team or warning spectators changes nothing. You need specific FAA approval for that TFR before you fly.",
     "UA.II.A.K3", "14 CFR 107.47; 91.145"),
+  q(47, "When a remote pilot-in-command and a visual observer define their roles and responsibilities prior to and during the operation of a small UA is a good use of",
+    ["Authoritarian Resource Management.", "Crew Resource Management.", "Single Pilot Resource Management."], "B",
+    "Agreeing who does what before and during the flight is Crew Resource Management: using every person and resource on the team. Single Pilot Resource Management is for a pilot working alone, and Authoritarian Resource Management is not a real term.",
+    "UA.V.D.K2", "AC 107-2A; FAA PSI practice test"),
 ];

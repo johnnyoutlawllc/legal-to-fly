@@ -56,14 +56,14 @@ export default function FaaSamplePage() {
           <p className="text-sm font-medium uppercase tracking-widest text-[var(--accent)]">From the FAA</p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight">FAA Sample Questions</h1>
           <p className="mt-3 leading-7 text-[var(--muted)]">
-            All {FAA_SAMPLE_QUESTIONS.length} of the FAA&apos;s published sample questions for the
-            Unmanned Aircraft General (UAG) test, worded exactly as the FAA wrote them, with the
-            chart figures they refer to. Answer them all, then submit to see the correct answers and
-            why.
+            All {FAA_SAMPLE_QUESTIONS.length - 1} of the FAA&apos;s published sample questions for the
+            Unmanned Aircraft General (UAG) test, plus one more from the FAA&apos;s official PSI practice
+            test. They are worded exactly as the FAA wrote them, with the chart figures they refer to.
+            Answer them all, then submit to see the correct answers and why.
           </p>
           <p className="mt-4 rounded-lg border border-[var(--accent)]/50 bg-[var(--accent)]/10 p-4 text-sm leading-6">
-            The FAA publishes these questions without an answer key. The answers and explanations
-            here are ours, checked against 14 CFR and the{" "}
+            The FAA&apos;s PDF has no answer key. Every answer here matches the key from the
+            FAA&apos;s official practice test on PSI. The explanations are ours, written from 14 CFR and the{" "}
             <a href={FAA_SUPPLEMENT_URL} target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] underline underline-offset-2">FAA-CT-8080-2H supplement</a>.
             Source:{" "}
             <a href={FAA_SAMPLE_PDF_URL} target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] underline underline-offset-2">FAA UAG sample questions (PDF)</a>.
