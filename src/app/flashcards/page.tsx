@@ -18,13 +18,24 @@ type Phase = "loading" | "ready" | "running" | "error";
 type Mode = "auto" | "manual";
 type Deck = "all" | "faa" | "charts" | "I" | "II" | "III" | "IV" | "V";
 
-/** The slider sets seconds on the question side. The answer side gets half
- *  that plus reading time per word of explanation, so a long explanation is
- *  not cut off. Chart cards get extra time to find the spot on the figure. */
-const MIN_SECONDS = 5;
-const MAX_SECONDS = 15;
-const PER_WORD = 0.17;
+/** Two sliders: seconds on the question side and seconds on the answer side.
+ *  Chart cards get extra question time to find the spot on the figure. */
+const QUESTION_RANGE: [number, number] = [5, 30];
+const ANSWER_RANGE: [number, number] = [3, 30];
 const FIGURE_BONUS = 4;
+
+/** Elimination waits until the question and all three choices could be read
+ *  (at least half the question time), then knocks the wrong answers out
+ *  evenly up to 85% of it, so the right one stands alone at the end. */
+const READ_SECONDS_PER_WORD = 0.3;
+const ELIM_START_MIN = 0.5;
+const ELIM_START_MAX = 0.75;
+const ELIM_END = 0.85;
+
+const clamp = (v: unknown, [lo, hi]: [number, number], fallback: number) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : fallback;
+};
 
 /** A card is a question with its choices shuffled and a random order in
  *  which to knock out the wrong ones. */
@@ -45,15 +56,19 @@ const BUILT_IN = [...EXAM_FIGURE_QUESTIONS, ...EXAM_CALCULATION_QUESTIONS, ...EX
 const SETTINGS_KEY = "ltf_flashcards_v1";
 const TICK_MS = 100;
 
-type Settings = { deck: Deck; mode: Mode; seconds: number; showChoices: boolean; eliminate: boolean; showWhy: boolean };
-const DEFAULTS: Settings = { deck: "all", mode: "auto", seconds: 8, showChoices: false, eliminate: false, showWhy: true };
+/** `seconds` is the question time (its key predates the answer slider). */
+type Settings = { deck: Deck; mode: Mode; seconds: number; answerSeconds: number; showChoices: boolean; eliminate: boolean; showWhy: boolean };
+const DEFAULTS: Settings = { deck: "all", mode: "auto", seconds: 15, answerSeconds: 10, showChoices: false, eliminate: false, showWhy: true };
 
 function loadSettings(): Settings {
   if (typeof window === "undefined") return DEFAULTS;
   try {
     const s = { ...DEFAULTS, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? "{}") };
-    const seconds = Number(s.seconds);
-    return { ...s, seconds: Number.isFinite(seconds) ? Math.min(MAX_SECONDS, Math.max(MIN_SECONDS, seconds)) : DEFAULTS.seconds };
+    return {
+      ...s,
+      seconds: clamp(s.seconds, QUESTION_RANGE, DEFAULTS.seconds),
+      answerSeconds: clamp(s.answerSeconds, ANSWER_RANGE, DEFAULTS.answerSeconds),
+    };
   } catch {
     return DEFAULTS;
   }
@@ -115,16 +130,21 @@ export default function FlashcardsPage() {
   const showChoices = settings.showChoices || settings.eliminate;
   const duration = useMemo(() => {
     if (!card) return 0;
-    if (!flipped) return settings.seconds + (card.figure ? FIGURE_BONUS : 0);
-    const words = settings.showWhy ? card.explanation.split(/\s+/).length : 0;
-    return settings.seconds / 2 + words * PER_WORD;
-  }, [card, flipped, settings.seconds, settings.showWhy]);
+    return flipped ? settings.answerSeconds : settings.seconds + (card.figure ? FIGURE_BONUS : 0);
+  }, [card, flipped, settings.seconds, settings.answerSeconds]);
 
   // Elimination: in automatic mode the wrong answers fade out on a schedule
-  // (with two wrong answers, at one third and two thirds of the question
-  // time), so only the right one is left when the timer runs out. In manual
-  // mode each tap knocks one out.
+  // (see ELIM_* above), so only the right one is left when the timer runs
+  // out. In manual mode each tap knocks one out.
   const wrongCount = card?.elim.length ?? 0;
+  const elimTimes = useMemo(() => {
+    if (!card || !duration) return [];
+    const words = [card.stem, ...card.choices.map((c) => c.body)].join(" ").split(/\s+/).length;
+    const startAt = Math.min(ELIM_START_MAX, Math.max(ELIM_START_MIN, (words * READ_SECONDS_PER_WORD) / duration));
+    return card.elim.map((_, i) =>
+      duration * (card.elim.length === 1 ? startAt : startAt + ((ELIM_END - startAt) * i) / (card.elim.length - 1)),
+    );
+  }, [card, duration]);
   const eliminated =
     !settings.eliminate || !card
       ? 0
@@ -132,7 +152,7 @@ export default function FlashcardsPage() {
         ? wrongCount
         : settings.mode === "manual"
           ? manualElim
-          : Math.min(wrongCount, Math.floor((elapsed / duration) * (wrongCount + 1)));
+          : elimTimes.filter((t) => elapsed >= t).length;
   const gone = new Set(card?.elim.slice(0, eliminated));
 
   const go = useCallback(
@@ -257,11 +277,9 @@ export default function FlashcardsPage() {
           </Setting>
 
           {settings.mode === "auto" && (
-            <Setting label="Time per question">
-              <SecondsSlider value={settings.seconds} onChange={(seconds) => update({ seconds })} />
-              <p className="mt-2 text-sm text-[var(--muted)]">
-                {settings.seconds}s on the question (more on chart cards), then {settings.seconds / 2}s plus reading time on the answer.
-              </p>
+            <Setting label="Timers">
+              <TimerSliders settings={settings} update={update} />
+              <p className="mt-2 text-sm text-[var(--muted)]">Chart cards get {FIGURE_BONUS} extra seconds on the question.</p>
             </Setting>
           )}
 
@@ -386,8 +404,8 @@ export default function FlashcardsPage() {
           {flipped ? "Next" : stepping ? "Eliminate one" : "Show answer"}
         </button>
         {settings.mode === "auto" && (
-          <div className="w-full sm:ml-auto sm:w-64">
-            <SecondsSlider value={settings.seconds} onChange={(seconds) => update({ seconds })} />
+          <div className="w-full sm:ml-auto sm:w-72">
+            <TimerSliders settings={settings} update={update} />
           </div>
         )}
       </div>
@@ -395,21 +413,29 @@ export default function FlashcardsPage() {
   );
 }
 
-function SecondsSlider({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+function TimerSliders({ settings, update }: { settings: Settings; update: (patch: Partial<Settings>) => void }) {
+  return (
+    <div className="space-y-2">
+      <SecondsSlider label="Question" range={QUESTION_RANGE} value={settings.seconds} onChange={(seconds) => update({ seconds })} />
+      <SecondsSlider label="Answer" range={ANSWER_RANGE} value={settings.answerSeconds} onChange={(answerSeconds) => update({ answerSeconds })} />
+    </div>
+  );
+}
+
+function SecondsSlider({ label, range: [min, max], value, onChange }: { label: string; range: [number, number]; value: number; onChange: (v: number) => void }) {
   return (
     <label className="flex items-center gap-3">
-      <span className="shrink-0 text-xs text-[var(--muted)]">{MIN_SECONDS}s</span>
+      <span className="w-16 shrink-0 text-xs text-[var(--muted)]">{label}</span>
       <input
         type="range"
-        min={MIN_SECONDS}
-        max={MAX_SECONDS}
+        min={min}
+        max={max}
         step={1}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        aria-label="Seconds per question"
+        aria-label={`${label} seconds`}
         className="h-2 w-full cursor-pointer accent-[var(--accent)]"
       />
-      <span className="shrink-0 text-xs text-[var(--muted)]">{MAX_SECONDS}s</span>
       <span className="w-9 shrink-0 text-right font-mono tabular-nums text-[var(--accent)]">{value}s</span>
     </label>
   );
