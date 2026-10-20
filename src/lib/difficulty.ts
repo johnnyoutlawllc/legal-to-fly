@@ -48,9 +48,21 @@ export function present(q: Question, level: Level): Question {
   const tricky = wrong.filter((c) => tierOf(c) === 3);
 
   // Difficult: a near miss plus the best of the rest, never an obvious one.
-  // Top up from whatever is left so there are always three choices.
+  // Within each tier, prefer wrong answers about as long as the right one:
+  // the correct choice is the longest in most of the bank, which made
+  // "pick the longest" a winning strategy. Top up from whatever is left so
+  // there are always three choices.
+  const target = correct[0]?.body.length ?? 0;
+  const byLength = (cs: Choice[]) =>
+    shuffle(cs).sort((a, b) => Math.abs(a.body.length - target) - Math.abs(b.body.length - target));
+  const nonObvious = byLength([...tricky, ...plausible]);
+  const firstTricky = nonObvious.find((c) => tierOf(c) === 3);
   const preferred =
-    level === "standard" ? original : [...shuffle(tricky), ...shuffle(plausible)];
+    level === "standard"
+      ? original
+      : firstTricky
+        ? [firstTricky, ...nonObvious.filter((c) => c !== firstTricky)]
+        : nonObvious;
   const distractors = [...preferred, ...shuffle(wrong.filter((c) => !preferred.includes(c)))].slice(0, 2);
 
   const choices = shuffle([...correct, ...distractors]).map((c, i) => ({
