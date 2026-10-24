@@ -1,0 +1,48 @@
+name: Security dependency validation
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: 'true'
+      NEXT_TELEMETRY_DISABLED: '1'
+      VERCEL_ENV: preview
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:9
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: build-only-placeholder
+      SUPABASE_SERVICE_ROLE_KEY: build-only-placeholder
+      STRIPE_SECRET_KEY: sk_test_build_only_placeholder
+      NODE_OPTIONS: --max-old-space-size=4096
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.22.1
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify patched native image processing
+        run: |
+          node <<'NODE'
+          const assert = require('node:assert/strict');
+          const sharp = require('sharp');
+          assert.equal(require('next/package.json').version, '16.4.3');
+          assert.equal(sharp.versions.sharp, '0.35.5');
+          for (const [p,v] of Object.entries(require('./package-lock.json').packages)) {
+            if (p.endsWith('node_modules/sharp')) assert.equal(v.version, '0.35.5', p);
+          }
+          sharp(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8" fill="red"/></svg>')).resize(4,4).png().toBuffer({resolveWithObject:true}).then(({info})=>{
+            assert.equal(info.width,4); assert.equal(info.height,4); assert.equal(info.format,'png'); console.log(JSON.stringify(sharp.versions));
+          }).catch(e=>{console.error(e);process.exitCode=1;});
+          NODE
+      - run: node node_modules/next/dist/bin/next typegen
+      - run: node node_modules/typescript/bin/tsc --noEmit
+      - name: Lint when configured
+        if: ${{ hashFiles('eslint.config.*', '.eslintrc*') != '' }}
+        run: node node_modules/eslint/bin/eslint.js src --quiet
+      - name: Production compilation
+        if: ${{ !cancelled() }}
+        run: node node_modules/next/dist/bin/next build
